@@ -21,6 +21,14 @@ const config_carousel={
     focusAt:"center",
     perView:3
 }
+const combinedSolarData=[]
+const now = new Date();
+const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+const referenceDate = new Date("1 jan 2020 00:00")
+const timeOffset=midnight.valueOf()-referenceDate.valueOf()
+console.log(midnight)
+console.log(referenceDay)
+console.log(new Date(timeOffset))
 const averageDemandGraph=drawAverageChart()
 
 function drawAverageChart(){
@@ -32,8 +40,12 @@ function drawAverageChart(){
           },
           {
             name:'now',
-            data:[{x:new Date(`1 jan 2020 ${new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}`),y:3},
-            {x:new Date(`1 jan 2020 ${new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}`).valueOf()+100,y:1.5}]
+            data:[{x:referenceDay(Date.now()),y:3},
+            {x:new Date(`1 jan 2020 ${new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}`).valueOf()+100,y:0}]
+          },
+          {
+            name:'combined solar generation',
+            data:combinedSolarData
           }
         ]
       },
@@ -218,6 +230,17 @@ function fetchPeriodData(site,period){
     })
 }
 
+function fetchCombinedSolarData(){
+    fetch("/site/all").then((res)=>{
+        res.json().then((data3)=>{
+            combinedSolarData.push(...data3.values.map(r=>{return{x:r[0]*1000-timeOffset,y:parseFloat(r[1]/1000000)}}))
+            combinedSolarData[combinedSolarData.length-1].x=Date.now()-timeOffset
+            drawAverageChart()
+        })
+    })
+}
+fetchCombinedSolarData()
+
 scrollButtonDialogLeft.addEventListener('click',(e)=>{
     const period=e.currentTarget.parentNode.parentNode.querySelector("[name='period']:checked").value
     const currentSiteName=siteName.textContent
@@ -254,6 +277,10 @@ function demandAtTime(pointInTime){
 }
 
 console.log(demandAtTime(Date.now()))
+
+function referenceDay(time){
+    return new Date(`1 jan 2020 ${new Date(time).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}`)
+}
 
 
 
