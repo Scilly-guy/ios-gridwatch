@@ -66,7 +66,9 @@ func main() {
 			return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad period"})
 		}
 		w := c.Response()
+		//FIXME:CORS
 		w.Header().Set("Access-Control-Allow-Origin", "*")
+
 		site_data, err := FetchSitePeriodData(siteName, int(period))
 		if err != nil {
 			log.Print("Error: ", err)
