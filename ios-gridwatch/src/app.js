@@ -21,6 +21,34 @@ const config_carousel={
     focusAt:"center",
     perView:3
 }
+const averageDemandGraph=drawAverageChart()
+
+function drawAverageChart(){
+    return new LineChart(
+    '#demandGraph',{
+        series:[{
+            name: 'average demand',
+            data: data
+          },
+          {
+            name:'now',
+            data:[{x:new Date(`1 jan 2020 ${new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}`),y:3},
+            {x:new Date(`1 jan 2020 ${new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}`).valueOf()+100,y:1.5}]
+          }
+        ]
+      },
+      {
+        axisX: {
+          type: FixedScaleAxis,
+          divisor: 12,
+          labelInterpolationFnc: value =>
+            new Date(value).toLocaleString(undefined, 
+                {hour:'numeric',
+                minute:'numeric'})
+        }
+      }
+    );
+}
 
 const time=document.getElementById("time")
 const averageDemand=document.getElementById("averageDemand")
@@ -31,6 +59,7 @@ function updateDemand(currentGeneration){
     const averageMW=demandAtTime(Date.now())
     averageDemand.textContent=averageMW.toFixed(2)
     percentOfDemand.textContent=(currentGeneration/(averageMW*10)).toFixed(2)
+    drawAverageChart()
 }
 const eventSource=new EventSource("http://192.168.1.95:1323/sse")
 eventSource.addEventListener("message",(e)=>{
@@ -67,7 +96,7 @@ eventSource.addEventListener("message",(e)=>{
             e.addEventListener('click',handleCardClick)
         })
         updateDemand(parseFloat(data1["current_w"])/1000)
-        updater=setInterval(()=>{updateDemand(parseFloat(data1["current_w"])/1000)},15000)
+        updater=setInterval(()=>{updateDemand(parseFloat(data1["current_w"])/1000)},60000)
     }
 
 })
@@ -226,24 +255,5 @@ function demandAtTime(pointInTime){
 
 console.log(demandAtTime(Date.now()))
 
-new LineChart(
-    '#demandGraph',{
-        series:[{
-            name: 'average demand',
-            data: data.map(d=>{return{x:new Date(d.x).valueOf(),y:d.y}})
-          }
-        ]
-      },
-      {
-        axisX: {
-          type: FixedScaleAxis,
-          divisor: 12,
-          labelInterpolationFnc: value =>
-            new Date(value).toLocaleString(undefined, 
-                {hour:'numeric',
-                minute:'numeric'})
-        }
-      }
-    );
 
 

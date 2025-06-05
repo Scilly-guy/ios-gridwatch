@@ -174,8 +174,13 @@ h1{
     stroke-linecap: round;
 }
 .ct-line{
-    fill:none;
     stroke-width:1px;
+}
+.ct-series-b .ct-line{
+    stroke:blue;
+}
+.ct-series-a .ct-line{
+    stroke:var(--main);
 }
 #siteOverview{
     position: relative;
