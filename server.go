@@ -78,5 +78,19 @@ func main() {
 		return c.JSON(http.StatusOK, site_data)
 	})
 
+	e.GET("/site/all", func(c echo.Context) error {
+		w := c.Response()
+		//FIXME:CORS
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
+		site_data, err := FetchTodaysGenerationData()
+		if err != nil {
+			log.Print("Error: ", err)
+			return c.JSON(http.StatusBadGateway, map[string]string{"message": "bad query"})
+		}
+
+		return c.JSON(http.StatusOK, site_data)
+	})
+
 	e.Logger.Fatal(e.Start("0.0.0.0:1323"))
 }

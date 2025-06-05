@@ -352,6 +352,49 @@ type SitePeriodData struct {
 	Data    [][]interface{} `json:"data"`
 }
 
+type PeriodDataResponse struct {
+	Status string `json:"status"`
+	Data   struct {
+		ResultType string       `json:"resultType"`
+		Result     []PeriodData `json:"result"`
+	} `json:"data"`
+}
+
+type PeriodData struct {
+	Metric struct{}        `json:"metric"`
+	Values [][]interface{} `json:"values"`
+}
+
+func FetchTodaysGenerationData() (periodData PeriodData, err error) {
+	log.Print("Fetching todays generation data")
+	now := time.Now()
+	query := fmt.Sprintf("sum(avg_over_time(solar_watts[30m]))&start=%vZ&end=%vZ&step=1800", now.Format("2006-01-02T00:00:00"), now.Format("2006-01-02T15:04:05"))
+	url := fmt.Sprintf("%v_range?query=%v", prometheusURL, query)
+	log.Print(url)
+	resp, err := http.Get(url)
+	if err != nil {
+		return PeriodData{}, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return PeriodData{}, err
+	}
+
+	log.Print("Get carried out")
+
+	// Parse JSON response
+	var promResp PeriodDataResponse
+	err = json.Unmarshal(body, &promResp)
+	if err != nil {
+		return PeriodData{}, err
+	}
+
+	log.Print("Unmarshalled PeriodData")
+	return promResp.Data.Result[0], nil
+}
+
 func FetchSitePeriodData(site string, numberOfDays int) (sitePeriodData SitePeriodData, err error) {
 	var query1, query2, query3, query4 string
 	sitePeriodData.Name = strings.ReplaceAll(site, "+", " ")
