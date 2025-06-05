@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="./imgs/favicon.svg" type="image/x-icon">
+    <link rel="stylesheet" href="reset.css">
+    <link rel="stylesheet" href="glide.core.min.css">
+    <link rel="stylesheet" href="glide.theme.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chartist@1.3.1/dist/index.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="glide.min.js"></script>
+    <script src="./src/app.js" defer type="module"></script>
+    <title>IOS Gridwatch</title>
+</head>
+<body>
+    <div class="flex">
+        <h1>Isles of Scilly Community Venture Gridwatch</h1>
+        <div id="totals" class="card">
+            <img src="./imgs/favicon.svg" alt="sunshine">
+            <ul class="totals">
+                <li>
+                    <label for="current"><h2>Current</h3></label>
+                    <span id="current"></span>
+                </li>
+                <li>
+                    <label for="daily"><h3>Daily</h3></label>
+                    <div class="arrow"><div class="arrow-body"></div><div class="arrow-head"></div></div>
+                    <span id="daily"></span>
+                </li>
+                <li>
+                    <label for="week"><h3>Weekly</h3></label>
+                    <div class="arrow"><div class="arrow-body"></div><div class="arrow-head"></div></div>
+                    <span id="week"></span>
+                </li>
+                <li>
+                    <label for="year"><h3>Yearly</h3></label>
+                    <div class="arrow"><div class="arrow-body"></div><div class="arrow-head"></div></div>
+                    <span id="year"></span>
+                </li>
+                <li>
+                    <label for="total"><h2>Total Solar</h3></label>
+                    <span id="total"></span>
+                </li>
+            </ul>
+        </div>
+        <div id="rank">
+            <table>
+                <thead><th>Rank</th><th>Site</th><th>Generation</th></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="glide">
+            <div class="glide__track" data-glide-el="track">
+                <ul class="glide__slides" id="sites">
+
+                </ul>
+            </div>
+            <div data-glide-el="controls">
+                <button class="glide__arrow glide__arrow--left" data-glide-dir="<">&lt;</button>
+                <button class="glide__arrow glide__arrow--right" data-glide-dir=">">&gt;</button>
+            </div>
+            <div class="glide__bullets" data-glide-el="controls[nav]">
+
+            </div>
+        </div>
+    </div>
+    <dialog id="siteOverview">
+        <object><img></object>
+        <div class="space-between">
+            <button id="scroll-left">&lt;</button>
+            <h3 id="siteName"></h3>
+            <button id="scroll-right">&gt;</button>
+        </div>
+        <p>The meter for this site currently reads <span id="meterReading"></span>kWhrs.</p>
+        <p>This site is currently generating <span id="currentProduction"></span>watts.</p>
+        <div class="tab-section">
+            <ul class="tabs">
+                <li><label class="periodSelector" for="periodDay">Day</label><input id="periodDay" type="radio" name="period" value="1" checked="checked"></li>
+                <li><label class="periodSelector" for="periodWeek">Week</label><input id="periodWeek" type="radio" name="period" value="7"></li>
+                <li><label class="periodSelector" for="periodMonth">Month</label><input id="periodMonth" type="radio" name="period" value="31"></li>
+                <li><label class="periodSelector" for="periodYear">Year</label><input id="periodYear" type="radio" name="period" value="365"></li>
+            </ul>
+            <div class="tab-area">
+                <p>Total energy generated during this period:<span id="generationInPeriod"></span>kWhrs.</p>
+                <div id="siteChart"></div>
+            </div>
+        </div>
+        <button onclick="document.getElementById('siteOverview').close()">X</button>
+    </dialog>
+    <div>
+        <div id="demandGraph"></div>
+        <p>The demand on an average day at <span id="time"></span> is <span id="averageDemand"></span>MWs, current solar generation is meeting <span id="percentOfDemand"></span>% of this.</p>
+    </div>
+</body>
+</html>
