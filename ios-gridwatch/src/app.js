@@ -21,8 +21,9 @@ const config_carousel={
     focusAt:"center",
     perView:3
 }
+const scale=document.getElementById("scale")
 const combinedSolarData=[]
-const averageDemandGraph=drawAverageChart()
+drawAverageChart()
 
 function drawAverageChart(){
     return new LineChart(
@@ -38,7 +39,7 @@ function drawAverageChart(){
           },
           {
             name:'combined solar generation',
-            data:combinedSolarData
+            data:combinedSolarData.map(d=>{return {x:d.x,y:d.y*scale.value}})
           }
         ]
       },
@@ -110,8 +111,13 @@ eventSource.addEventListener("message",(e)=>{
 
 })
 
+
 document.querySelectorAll('.periodSelector').forEach((s)=>{
     s.addEventListener('click',handlePeriodSelection)
+})
+
+scale.addEventListener("input",()=>{
+    drawAverageChart()
 })
 
 function createSiteRow(rank,siteData){
@@ -276,8 +282,6 @@ function demandAtTime(pointInTime){
     const changePerMinute=(y2-y1)/30
     return y1+xd*changePerMinute //linear interpolation
 }
-
-console.log(demandAtTime(Date.now()))
 
 function referenceDay(time=Date.now()){
     return new Date(`1 jan 2020 ${new Date(time).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}`)
