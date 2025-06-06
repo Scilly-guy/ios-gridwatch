@@ -71,44 +71,53 @@ function updateDemand(currentGeneration){
     percentOfDemand.textContent=(currentGeneration/(averageMW*10)).toFixed(2)//averageMW * 10 = averageMW * 1000 / 100 = average_kW / 100 = 1%
     drawAverageChart()
 }
-const eventSource=new EventSource("http://192.168.1.95:1323/sse")
-eventSource.addEventListener("message",(e)=>{
 
-    const data1=JSON.parse(e.data);
-    total.textContent=formatWatts(data1["total_kwh"]*1000,true)
-    current.textContent=formatWatts(data1["current_w"])
-    daily.textContent=formatWatts(data1["day_kwh"]*1000,true)
-    week.textContent=formatWatts(data1["week_kwh"]*1000,true)
-    year.textContent=formatWatts(data1["year_kwh"]*1000,true)
-    if(sites_carousel.firstElementChild){//if !pageload
-        while(rank.firstChild){
-            rank.firstChild.remove()
-        }
-        const sortedSites=data1['sites'].sort((a,b)=>b.snapshot-a.snapshot)
-        sortedSites.forEach((site,i) => {
-            const spacelessName=site.name.replaceAll(" ","")
-            sites_carousel.querySelectorAll(`.${spacelessName}-snapshot`).forEach(span=>{
-                span.textContent=formatWatts(site.snapshot)
-            })
-            rank.append(createSiteRow(i+1,site));
-        });
-    }
-    else{ //if pageload
-        const sortedSites=data1['sites'].sort((a,b)=>b.snapshot-a.snapshot)
-        sortedSites.forEach((site,i) => {
-            site_names.push(site.name)
-            sites_carousel.append(createSiteCard(site))
-            addBullet(glide_carousel)
-            rank.append(createSiteRow(i+1,site))
-        });
-        new Glide('.glide',config_carousel).mount()
-        const cards=document.querySelectorAll('.site-card').forEach(e=>{
-            e.addEventListener('click',handleCardClick)
-        })
+document.addEventListener("DOMContentLoaded",()=>{
+    const eventSource=new EventSource("/sse")
+    eventSource.addEventListener("message",(e)=>{
+
+        const data1=JSON.parse(e.data);
+        total.textContent=formatWatts(data1["total_kwh"]*1000,true)
+        current.textContent=formatWatts(data1["current_w"])
+        daily.textContent=formatWatts(data1["day_kwh"]*1000,true)
+        week.textContent=formatWatts(data1["week_kwh"]*1000,true)
+        year.textContent=formatWatts(data1["year_kwh"]*1000,true)
         updateDemand(parseFloat(data1["current_w"])/1000)
-        updater=setInterval(()=>{updateDemand(parseFloat(data1["current_w"])/1000)},60000)
-    }
+        if(sites_carousel.firstElementChild){//if !pageload
+            while(rank.firstChild){
+                rank.firstChild.remove()
+            }
+            const sortedSites=data1['sites'].sort((a,b)=>b.snapshot-a.snapshot)
+            sortedSites.forEach((site,i) => {
+                const spacelessName=site.name.replaceAll(" ","")
+                sites_carousel.querySelectorAll(`.${spacelessName}-snapshot`).forEach(span=>{
+                    span.textContent=formatWatts(site.snapshot)
+                })
+                rank.append(createSiteRow(i+1,site));
+            });
+            combinedSolarData.push({
+                x:referenceDay(),
+                y:data1["current_w"]/1000000,
+            })
+        }
+        else{ //if pageload
+            const sortedSites=data1['sites'].sort((a,b)=>b.snapshot-a.snapshot)
+            sortedSites.forEach((site,i) => {
+                site_names.push(site.name)
+                sites_carousel.append(createSiteCard(site))
+                addBullet(glide_carousel)
+                rank.append(createSiteRow(i+1,site))
+            });
+            new Glide('.glide',config_carousel).mount()
+            const cards=document.querySelectorAll('.site-card').forEach(e=>{
+                e.addEventListener('click',handleCardClick)
+            })
+        }
 
+    })
+    window.addEventListener("beforeunload",()=>{
+        eventSource.close()
+    })
 })
 
 
