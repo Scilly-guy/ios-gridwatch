@@ -170,7 +170,7 @@ h1{
 }
 
 .ct-point{
-    stroke-width:1px;
+    stroke-width:0px;
     stroke-linecap: round;
 }
 .ct-line{
