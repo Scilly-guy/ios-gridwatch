@@ -1,5 +1,6 @@
 import { LineChart, FixedScaleAxis } from "chartist"
 import {data} from "./data"
+let liveData={}
 const total=document.getElementById("total")
 const daily=document.getElementById("daily")
 const week=document.getElementById("week")
@@ -22,6 +23,7 @@ const config_carousel={
     perView:3
 }
 const scale=document.getElementById("scale")
+const sortingOptions=document.querySelectorAll("[name=sort]")
 const combinedSolarData=[]
 drawAverageChart()
 
@@ -63,7 +65,7 @@ function drawAverageChart(){
 const time=document.getElementById("time")
 const averageDemand=document.getElementById("averageDemand")
 const percentOfDemand=document.getElementById("percentOfDemand")
-let updater
+
 function updateDemand(currentGeneration){
     time.textContent=new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})
     const averageMW=demandAtTime(Date.now())
@@ -72,41 +74,65 @@ function updateDemand(currentGeneration){
     drawAverageChart()
 }
 
+function updateAggregated(){
+    total.textContent=formatWatts(liveData["total_kwh"]*1000,true)
+    current.textContent=formatWatts(liveData["current_w"])
+    daily.textContent=formatWatts(liveData["day_kwh"]*1000,true)
+    week.textContent=formatWatts(liveData["week_kwh"]*1000,true)
+    year.textContent=formatWatts(liveData["year_kwh"]*1000,true)
+}
+
+function updateTable(){
+    const selected = document.querySelector('input[name="sort"]:checked');
+    let option="generation"
+    if (selected) {
+        option=selected.value
+    }
+    switch(option){
+        case "generation":
+            liveData.sites.sort((a,b)=>b.snapshot-a.snapshot)
+            break;
+        case "meter":
+            liveData.sites.sort((a,b)=>b.today-a.today)
+            break;
+        default:
+            liveData.sites.sort((a,b)=>b.snapshot-a.snapshot)
+            break;
+    }
+    while(rank.firstChild){
+        rank.firstChild.remove()
+    }
+    liveData.sites.forEach((site,i)=>{
+        rank.append(createSiteRow(i+1,site))
+    })
+}
+
 document.addEventListener("DOMContentLoaded",()=>{
     const eventSource=new EventSource("/sse")
     eventSource.addEventListener("message",(e)=>{
 
-        const data1=JSON.parse(e.data);
-        total.textContent=formatWatts(data1["total_kwh"]*1000,true)
-        current.textContent=formatWatts(data1["current_w"])
-        daily.textContent=formatWatts(data1["day_kwh"]*1000,true)
-        week.textContent=formatWatts(data1["week_kwh"]*1000,true)
-        year.textContent=formatWatts(data1["year_kwh"]*1000,true)
-        updateDemand(parseFloat(data1["current_w"])/1000)
-        if(sites_carousel.firstElementChild){//if !pageload
-            while(rank.firstChild){
-                rank.firstChild.remove()
-            }
-            const sortedSites=data1['sites'].sort((a,b)=>b.snapshot-a.snapshot)
-            sortedSites.forEach((site,i) => {
+        liveData=JSON.parse(e.data);
+        updateTable();
+        updateAggregated();
+        updateDemand(parseFloat(liveData["current_w"])/1000)
+        if(sites_carousel.firstElementChild){//if not first message
+            liveData.sites.forEach((site,i) => {
                 const spacelessName=site.name.replaceAll(" ","")
                 sites_carousel.querySelectorAll(`.${spacelessName}-snapshot`).forEach(span=>{
                     span.textContent=formatWatts(site.snapshot)
                 })
-                rank.append(createSiteRow(i+1,site));
             });
             combinedSolarData.push({
                 x:referenceDay(),
-                y:data1["current_w"]/1000000,
+                y:liveData["current_w"]/1000000,
             })
         }
-        else{ //if pageload
-            const sortedSites=data1['sites'].sort((a,b)=>b.snapshot-a.snapshot)
+        else{ //if first message
+            const sortedSites=liveData['sites'].sort((a,b)=>b.snapshot-a.snapshot)
             sortedSites.forEach((site,i) => {
                 site_names.push(site.name)
                 sites_carousel.append(createSiteCard(site))
                 addBullet(glide_carousel)
-                rank.append(createSiteRow(i+1,site))
             });
             new Glide('.glide',config_carousel).mount()
             const cards=document.querySelectorAll('.site-card').forEach(e=>{
@@ -129,15 +155,23 @@ scale.addEventListener("input",()=>{
     drawAverageChart()
 })
 
+sortingOptions.forEach(e=>{
+    e.addEventListener("change",()=>{
+
+    })
+})
+
 function createSiteRow(rank,siteData){
     const row=document.createElement('tr')
     const rankCell=document.createElement('td')
     const nameCell=document.createElement('td')
     const generationCell=document.createElement('td')
+    const meterCell=document.createElement('td')
     rankCell.textContent=rank
     nameCell.textContent=siteData.name
     generationCell.textContent=formatWatts(siteData.snapshot)
-    row.append(rankCell,nameCell,generationCell)
+    meterCell.textContent=formatWatts(siteData.today*1000,true)
+    row.append(rankCell,nameCell,generationCell,meterCell)
     return row
 }
 
