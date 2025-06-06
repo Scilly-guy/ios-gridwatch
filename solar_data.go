@@ -120,10 +120,6 @@ func get_solar_data() (SolarData, error) {
 		return SolarData{}, err
 	}
 	latest_total_watts := 0.0
-	for _, site := range latest_data {
-		site_watts, _ := strconv.ParseFloat(site.Value[1].(string), 64)
-		latest_total_watts += site_watts
-	}
 
 	for _, site := range latest_data {
 		for i := range sites {
