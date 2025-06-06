@@ -50,6 +50,10 @@ function drawAverageChart(){
             new Date(value).toLocaleString(undefined, 
                 {hour:'numeric',
                 minute:'numeric'})
+        },
+        axisY:{
+            labelInterpolationFnc: value=>
+                formatWatts(value*1000000)
         }
       }
     );
@@ -62,19 +66,19 @@ let updater
 function updateDemand(currentGeneration){
     time.textContent=new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})
     const averageMW=demandAtTime(Date.now())
-    averageDemand.textContent=averageMW.toFixed(2)
-    percentOfDemand.textContent=(currentGeneration/(averageMW*10)).toFixed(2)
+    averageDemand.textContent=formatWatts(averageMW*1000000)
+    percentOfDemand.textContent=(currentGeneration/(averageMW*10)).toFixed(2)//averageMW * 10 = averageMW * 1000 / 100 = average_kW / 100 = 1%
     drawAverageChart()
 }
 const eventSource=new EventSource("http://192.168.1.95:1323/sse")
 eventSource.addEventListener("message",(e)=>{
 
     const data1=JSON.parse(e.data);
-    total.textContent=`${data1["total_kwh"].toFixed(2)}kWh`
-    current.textContent=`${data1["current_w"].toFixed(2)}w`
-    daily.textContent=`${data1["day_kwh"].toFixed(2)}kWh`
-    week.textContent=`${data1["week_kwh"].toFixed(2)}kWh`
-    year.textContent=`${data1["year_kwh"].toFixed(2)}kWh`
+    total.textContent=formatWatts(data1["total_kwh"]*1000,true)
+    current.textContent=formatWatts(data1["current_w"])
+    daily.textContent=formatWatts(data1["day_kwh"]*1000,true)
+    week.textContent=formatWatts(data1["week_kwh"]*1000,true)
+    year.textContent=formatWatts(data1["year_kwh"]*1000,true)
     if(sites_carousel.firstElementChild){//if !pageload
         while(rank.firstChild){
             rank.firstChild.remove()
@@ -83,7 +87,7 @@ eventSource.addEventListener("message",(e)=>{
         sortedSites.forEach((site,i) => {
             const spacelessName=site.name.replaceAll(" ","")
             sites_carousel.querySelectorAll(`.${spacelessName}-snapshot`).forEach(span=>{
-                span.textContent=`${(site.snapshot/1000).toFixed(2)}kw`
+                span.textContent=formatWatts(site.snapshot)
             })
             rank.append(createSiteRow(i+1,site));
         });
@@ -117,7 +121,7 @@ function createSiteRow(rank,siteData){
     const generationCell=document.createElement('td')
     rankCell.textContent=rank
     nameCell.textContent=siteData.name
-    generationCell.textContent=`${(siteData.snapshot/1000).toFixed(2)}kw`
+    generationCell.textContent=formatWatts(siteData.snapshot)
     row.append(rankCell,nameCell,generationCell)
     return row
 }
@@ -138,7 +142,7 @@ function createSiteCard(siteData){
     span.classList.add("generation-total")
     const spacelessName=siteData.name.replaceAll(" ","")
     span.classList.add(`${spacelessName}-snapshot`)
-    span.textContent=`${(siteData.snapshot/1000).toFixed(2)}kw`
+    span.textContent=formatWatts(siteData.snapshot)
     obj.append(img)
     li.append(obj,name,span)
     return li
@@ -184,9 +188,9 @@ function fetchPeriodData(site,period){
     fetch(address).then((res)=>{
         res.json().then((data2)=>{
             siteName.textContent=data2.name
-            meterReading.textContent=data2.meter.toFixed(2)
-            currentProduction.textContent=data2.current.toFixed(0)
-            generationInPeriod.textContent=data2.generation_in_period.toFixed(2)
+            meterReading.textContent=formatWatts(data2.meter,true)
+            currentProduction.textContent=formatWatts(data2.current)
+            generationInPeriod.textContent=formatWatts(data2.generation_in_period,true)
             const chartData=data2.data.map((d)=>{
                 return {x:new Date(d[0]*1000),y:d[1]}
             })
@@ -267,16 +271,31 @@ function demandAtTime(pointInTime){
     }
     const y1=data[index-1].y
     const y2=data[index].y
-    const xd=dateInTime.getMinutes()<30?dateInTime.getMinutes():dateInTime.getMinutes()-30
+    const mins=referenceTime.getMinutes()
+    const xd=mins<30?mins:mins-30
     const changePerMinute=(y2-y1)/30
-    return y1+xd*changePerMinute
+    return y1+xd*changePerMinute //linear interpolation
 }
 
 console.log(demandAtTime(Date.now()))
 
-function referenceDay(time){
+function referenceDay(time=Date.now()){
     return new Date(`1 jan 2020 ${new Date(time).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}`)
 }
+
+function formatWatts(watts,wattHour=false) {
+    const units = ['W', 'kW', 'MW', 'GW'];
+    let index = 0;
+    let value = watts;
+  
+    while (value >= 1000 && index < units.length - 1) {
+      value /= 1000;
+      index++;
+    }
+  
+    return `${value.toFixed(2)} ${units[index]}${wattHour?'h':''}`;
+  }
+
 
 
 
