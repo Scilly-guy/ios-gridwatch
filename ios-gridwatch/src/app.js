@@ -22,13 +22,6 @@ const config_carousel={
     perView:3
 }
 const combinedSolarData=[]
-const now = new Date();
-const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-const referenceDate = new Date("1 jan 2020 00:00")
-const timeOffset=midnight.valueOf()-referenceDate.valueOf()
-console.log(midnight)
-console.log(referenceDay)
-console.log(new Date(timeOffset))
 const averageDemandGraph=drawAverageChart()
 
 function drawAverageChart(){
@@ -40,8 +33,8 @@ function drawAverageChart(){
           },
           {
             name:'now',
-            data:[{x:referenceDay(Date.now()),y:3},
-            {x:new Date(`1 jan 2020 ${new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}`).valueOf()+100,y:0}]
+            data:[{x:referenceDay(),y:3},
+            {x:referenceDay().valueOf()+100,y:0}]
           },
           {
             name:'combined solar generation',
@@ -233,8 +226,13 @@ function fetchPeriodData(site,period){
 function fetchCombinedSolarData(){
     fetch("/site/all").then((res)=>{
         res.json().then((data3)=>{
-            combinedSolarData.push(...data3.values.map(r=>{return{x:r[0]*1000-timeOffset,y:parseFloat(r[1]/1000000)}}))
-            combinedSolarData[combinedSolarData.length-1].x=Date.now()-timeOffset
+            combinedSolarData.push(...data3.values.map(r=>{
+                return{
+                    x:referenceDay(r[0]*1000).valueOf(),//Prometheus uses seconds so convert to milliseconds for js
+                    y:parseFloat(r[1]/1000000)//the supplied value is in watts, convert to MW for the graph
+                }
+            }))
+            combinedSolarData[combinedSolarData.length-1].x=referenceDay().valueOf()
             drawAverageChart()
         })
     })
@@ -259,11 +257,9 @@ scrollButtonDialogRight.addEventListener('click',(e)=>{
 })
 
 function demandAtTime(pointInTime){
-    const dateInTime=new Date(pointInTime)
-    const timeFromPoint=`${dateInTime.getHours()}:${dateInTime.getMinutes()}`
-    const timeOnReferenceDay=new Date(`1 jan 2020 ${timeFromPoint}`)
+    const referenceTime=referenceDay(pointInTime)
     let index=0
-    while(index<data.length && timeOnReferenceDay.valueOf()>new Date(data[index].x).valueOf()){
+    while(index<data.length && referenceTime.valueOf()>new Date(data[index].x).valueOf()){
         index++
     }
     if (index==0){//the time is 00:00
