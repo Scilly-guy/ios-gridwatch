@@ -29,6 +29,7 @@ type SiteData struct {
 	Today    float64 `json:"today"`
 	Week     float64 `json:"week"`
 	Last_365 float64 `json:"year"`
+	Max      float64 `json:"max"`
 }
 
 func get_solar_data() (SolarData, error) {
@@ -113,6 +114,25 @@ func get_solar_data() (SolarData, error) {
 		}
 	}
 
+	//get max statistics
+	max_data, err := fetchPrometheusSnapshotData("max_over_time(solar_watts[1y])", "")
+	if err != nil {
+		log.Printf("Error fetching current output: %v\n", err)
+		return SolarData{}, err
+	}
+
+	for _, site := range max_data {
+		for i := range sites {
+			if sites[i].Name == site.Metric.Site {
+				sites[i].Max = site.GetValue()
+				break
+			} else if i == len(sites)-1 {
+				max_watts, _ := strconv.ParseFloat(site.Value[1].(string), 64)
+				sites = append(sites, SiteData{Name: site.Metric.Site, Max: max_watts})
+			}
+		}
+	}
+
 	//get snapshot statistics
 	latest_data, err := fetchPrometheusSnapshotData("solar_watts", "")
 	if err != nil {
@@ -165,7 +185,6 @@ type PrometheusVectorResponse struct {
 
 type PrometheusSnapshotData struct {
 	Metric struct {
-		Name string `json:"__name__"`
 		Site string `json:"site"`
 	} `json:"metric"`
 	Value []interface{} `json:"value"`
@@ -345,6 +364,7 @@ type SitePeriodData struct {
 	Meter   float64         `json:"meter"`
 	Current float64         `json:"current"`
 	Period  float64         `json:"generation_in_period"`
+	Max     float64         `json:"max"`
 	Data    [][]interface{} `json:"data"`
 }
 
@@ -392,7 +412,7 @@ func FetchTodaysGenerationData() (periodData PeriodData, err error) {
 }
 
 func FetchSitePeriodData(site string, numberOfDays int) (sitePeriodData SitePeriodData, err error) {
-	var query1, query2, query3, query4 string
+	var query1, query2, query3, query4, query5 string
 	sitePeriodData.Name = strings.ReplaceAll(site, "+", " ")
 	if site != "" {
 		query1 = fmt.Sprintf("solar_generation_meter{site=\"%s\"}", site)
@@ -413,6 +433,7 @@ func FetchSitePeriodData(site string, numberOfDays int) (sitePeriodData SitePeri
 		}
 		query3 = fmt.Sprintf("solar_watts{site=\"%s\"}[%vd:%s]", site, numberOfDays, resolution)
 		query4 = fmt.Sprintf("increase(solar_generation_meter{site=\"%s\"}[%vd])", site, numberOfDays)
+		query5 = fmt.Sprintf("max_over_time(solar_generation_meter{site=\"%s\"}[%vd])", site, numberOfDays)
 	} else {
 		return SitePeriodData{}, errors.New("you must include a site name")
 	}
@@ -442,6 +463,12 @@ func FetchSitePeriodData(site string, numberOfDays int) (sitePeriodData SitePeri
 		return sitePeriodData, err
 	}
 	sitePeriodData.Period = period_generation[0].GetValue()
+
+	maximum, err := fetchPrometheusQuery(query5)
+	if err != nil {
+		return sitePeriodData, err
+	}
+	sitePeriodData.Max = maximum[0].GetValue()
 
 	return
 }
