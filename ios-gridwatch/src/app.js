@@ -156,8 +156,8 @@ scale.addEventListener("input",()=>{
 })
 
 sortingOptions.forEach(e=>{
-    e.addEventListener("change",()=>{
-
+    e.addEventListener("click",()=>{
+        updateTable()
     })
 })
 
