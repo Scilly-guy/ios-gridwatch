@@ -8,6 +8,8 @@ const year=document.getElementById("year")
 const current=document.getElementById("current")
 const site_names=[]
 const siteName=document.getElementById("siteName")
+const bestProduction=document.getElementById("bestProduction")
+const bestTime=document.getElementById("bestTime")
 const rank=document.querySelector("#rank table tbody")
 const meterReading=document.getElementById("meterReading")
 const currentProduction=document.getElementById("currentProduction")
@@ -112,6 +114,7 @@ document.addEventListener("DOMContentLoaded",()=>{
     eventSource.addEventListener("message",(e)=>{
 
         liveData=JSON.parse(e.data);
+        console.log(liveData)
         updateTable();
         updateAggregated();
         updateDemand(parseFloat(liveData["current_w"])/1000)
@@ -240,6 +243,7 @@ function fetchPeriodData(site,period){
             meterReading.textContent=formatWatts(data2.meter,true)
             currentProduction.textContent=formatWatts(data2.current)
             generationInPeriod.textContent=formatWatts(data2.generation_in_period,true)
+            bestProduction.textContent=formatWatts(data2.max)
             const chartData=data2.data.map((d)=>{
                 return {x:new Date(d[0]*1000),y:d[1]}
             })

@@ -433,7 +433,7 @@ func FetchSitePeriodData(site string, numberOfDays int) (sitePeriodData SitePeri
 		}
 		query3 = fmt.Sprintf("solar_watts{site=\"%s\"}[%vd:%s]", site, numberOfDays, resolution)
 		query4 = fmt.Sprintf("increase(solar_generation_meter{site=\"%s\"}[%vd])", site, numberOfDays)
-		query5 = fmt.Sprintf("max_over_time(solar_generation_meter{site=\"%s\"}[%vd])", site, numberOfDays)
+		query5 = fmt.Sprintf("max_over_time(solar_watts{site=\"%s\"}[%vd])", site, numberOfDays)
 	} else {
 		return SitePeriodData{}, errors.New("you must include a site name")
 	}

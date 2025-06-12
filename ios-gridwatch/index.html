@@ -76,8 +76,9 @@
             <h3 id="siteName"></h3>
             <button id="scroll-right">&gt;</button>
         </div>
-        <p>The meter for this site currently reads <span id="meterReading"></span>kWhrs.</p>
-        <p>This site is currently generating <span id="currentProduction"></span>watts.</p>
+        <p>The meter for this site currently reads <span id="meterReading"></span>.</p>
+        <p>This site is currently generating <span id="currentProduction"></span>.</p>
+        <p>The best output was <span id="bestProduction"></span>.</p>
         <div class="tab-section">
             <ul class="tabs">
                 <li><label class="periodSelector" for="periodDay">Day</label><input id="periodDay" type="radio" name="period" value="1" checked="checked"></li>
@@ -86,7 +87,7 @@
                 <li><label class="periodSelector" for="periodYear">Year</label><input id="periodYear" type="radio" name="period" value="365"></li>
             </ul>
             <div class="tab-area">
-                <p>Total energy generated during this period:<span id="generationInPeriod"></span>kWhrs.</p>
+                <p>Total energy generated during this period:<span id="generationInPeriod"></span>.</p>
                 <div id="siteChart"></div>
             </div>
         </div>
