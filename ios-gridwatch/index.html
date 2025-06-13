@@ -20,37 +20,39 @@
             <img src="./imgs/favicon.svg" alt="sunshine">
             <ul class="totals">
                 <li>
-                    <label for="current"><h2>Current</h3></label>
-                    <span id="current"></span>
+                    <label for="current"><h2>Live Generation</h3></label>
+                    <span id="current" class="highlight-output"></span>
                 </li>
                 <li>
-                    <label for="daily"><h3>Daily</h3></label>
+                    <label for="daily"><h3>Today</h3></label>
                     <div class="arrow"><div class="arrow-body"></div><div class="arrow-head"></div></div>
-                    <span id="daily"></span>
+                    <span id="daily" class="output"></span>
                 </li>
                 <li>
-                    <label for="week"><h3>Weekly</h3></label>
+                    <label for="week"><h3>Last 7 Days</h3></label>
                     <div class="arrow"><div class="arrow-body"></div><div class="arrow-head"></div></div>
-                    <span id="week"></span>
+                    <span id="week" class="output"></span>
                 </li>
                 <li>
-                    <label for="year"><h3>Yearly</h3></label>
+                    <label for="year"><h3>Last 365 Days</h3></label>
                     <div class="arrow"><div class="arrow-body"></div><div class="arrow-head"></div></div>
-                    <span id="year"></span>
+                    <span id="year" class="output"></span>
                 </li>
                 <li>
                     <label for="total"><h2>Total Solar</h3></label>
-                    <span id="total"></span>
+                    <span id="total" class="highlight-output"></span>
                 </li>
             </ul>
         </div>
-        <div id="rank">
+        <div id="rank" class="card">
             <table>
                 <thead>
                     <th>Rank</th>
                     <th>Site</th>
                     <th><label for="generationSort">Generation</label><input type="radio" id="generationSort" name="sort" value="generation" checked="checked"></th>
-                    <th><label for="meterSort">Meter</label><input type="radio" id="meterSort" name="sort" value="meter"></th></thead>
+                    <th><label for="meterSort">Meter</label><input type="radio" id="meterSort" name="sort" value="meter"></th>
+                    <th><label for="maxSort">% of max</label><input type="radio" id="maxSort" name="sort" value="max"></th>
+                </thead>
                 <tbody></tbody>
             </table>
         </div>
@@ -78,7 +80,6 @@
         </div>
         <p>The meter for this site currently reads <span id="meterReading"></span>.</p>
         <p>This site is currently generating <span id="currentProduction"></span>.</p>
-        <p>The best output was <span id="bestProduction"></span>.</p>
         <div class="tab-section">
             <ul class="tabs">
                 <li><label class="periodSelector" for="periodDay">Day</label><input id="periodDay" type="radio" name="period" value="1" checked="checked"></li>
@@ -87,16 +88,19 @@
                 <li><label class="periodSelector" for="periodYear">Year</label><input id="periodYear" type="radio" name="period" value="365"></li>
             </ul>
             <div class="tab-area">
-                <p>Total energy generated during this period:<span id="generationInPeriod"></span>.</p>
+                <p>Total energy generated during this period:<span id="generationInPeriod"></span>. The best output was <span id="bestProduction"></span>.</p>
                 <div id="siteChart"></div>
             </div>
         </div>
         <button onclick="document.getElementById('siteOverview').close()">X</button>
     </dialog>
-    <div>
+    <div class="column">
+        <h2 class="graph-title">Average Demand For Electricity On Scilly Throughout The Day</h2>
         <div id="demandGraph"></div>
-        <label for="scale">Scale solar generation on graph:</label><input type="range" min="1" max="50" step="1" id="scale">
-        <p>The demand on an average day at <span id="time"></span> is <span id="averageDemand"></span>s, current solar generation is meeting <span id="percentOfDemand"></span>% of this.</p>
+        <div id="meaning">
+            <label for="scale">Scale solar generation on graph:</label><input type="range" min="1" max="50" step="1" id="scale" value="1"><span id="scale_value"></span>
+            <p>The demand on an average day at <span id="time"></span> is <span id="averageDemand"></span>s, current solar generation is meeting <span id="percentOfDemand"></span>% of this.</p>
+        </div>
     </div>
 </body>
 </html>

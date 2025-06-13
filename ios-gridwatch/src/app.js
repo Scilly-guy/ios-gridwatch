@@ -9,7 +9,6 @@ const current=document.getElementById("current")
 const site_names=[]
 const siteName=document.getElementById("siteName")
 const bestProduction=document.getElementById("bestProduction")
-const bestTime=document.getElementById("bestTime")
 const rank=document.querySelector("#rank table tbody")
 const meterReading=document.getElementById("meterReading")
 const currentProduction=document.getElementById("currentProduction")
@@ -25,6 +24,7 @@ const config_carousel={
     perView:3
 }
 const scale=document.getElementById("scale")
+const scale_value=document.getElementById("scale_value")
 const sortingOptions=document.querySelectorAll("[name=sort]")
 const combinedSolarData=[]
 drawAverageChart()
@@ -57,8 +57,7 @@ function drawAverageChart(){
                 minute:'numeric'})
         },
         axisY:{
-            labelInterpolationFnc: value=>
-                formatWatts(value*1000000)
+            labelInterpolationFnc: value=>`${value} MW`
         }
       }
     );
@@ -97,6 +96,9 @@ function updateTable(){
         case "meter":
             liveData.sites.sort((a,b)=>b.today-a.today)
             break;
+        case "max":
+            liveData.sites.sort((a,b)=>b.max_percent-a.max_percent)
+            break;
         default:
             liveData.sites.sort((a,b)=>b.snapshot-a.snapshot)
             break;
@@ -114,7 +116,11 @@ document.addEventListener("DOMContentLoaded",()=>{
     eventSource.addEventListener("message",(e)=>{
 
         liveData=JSON.parse(e.data);
-        console.log(liveData)
+        if(liveData.sites && liveData.sites.length){
+            liveData.sites.forEach((site)=>{
+                site.max_percent=site.snapshot/site.max*100
+            })
+        }
         updateTable();
         updateAggregated();
         updateDemand(parseFloat(liveData["current_w"])/1000)
@@ -154,7 +160,9 @@ document.querySelectorAll('.periodSelector').forEach((s)=>{
     s.addEventListener('click',handlePeriodSelection)
 })
 
+scale_value.textContent=scale.value
 scale.addEventListener("input",()=>{
+    scale_value.textContent=scale.value
     drawAverageChart()
 })
 
@@ -170,11 +178,13 @@ function createSiteRow(rank,siteData){
     const nameCell=document.createElement('td')
     const generationCell=document.createElement('td')
     const meterCell=document.createElement('td')
+    const maxPercentCell=document.createElement('td')
     rankCell.textContent=rank
     nameCell.textContent=siteData.name
     generationCell.textContent=formatWatts(siteData.snapshot)
     meterCell.textContent=formatWatts(siteData.today*1000,true)
-    row.append(rankCell,nameCell,generationCell,meterCell)
+    maxPercentCell.textContent=siteData.max_percent.toFixed(2)+"%"
+    row.append(rankCell,nameCell,generationCell,meterCell,maxPercentCell)
     return row
 }
 
