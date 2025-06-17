@@ -260,38 +260,62 @@ td:nth-child(5){
 #meaning{
     margin:0 auto;
     width:fit-content;
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 #meaning p{
     margin:1rem 0;
 }
-
-@media (max-width: 540px) {
-    .card{
-        border: none;
-    }    
-}
-
 .ct-vertical{
     font-size:0.7rem;
 }
-
+span.ct-horizontal{
+    translate:-0.9rem;
+}
 span.ct-vertical{
     translate:0 0.35rem;
 }
-
 .column{
     display: flex;
     flex-direction: column;
+    align-items: center;
+}
+
+.column p{
+    max-width: 70dvw;
+    margin: 0 auto;
 }
 
 .graph-title{
     font-size: 1.7rem;
     font-weight: 600;
     margin:0 auto;
+    text-align: center;
 }
 
 #scale{
     position: relative;
     top:7px;
+}
+
+#demandGraph{
+    width: 90dvw;
+}
+@media (max-width: 540px) {
+    .card{
+        border: none;
+    }    
+    .column p{
+        max-width: 95dvw;
+    }
+    span.ct-label{
+        font-size: 0.5rem;
+    }
+    span.ct-horizontal{
+        translate:-0.65rem 0;
+    }
+    #demandGraph{
+        width:100dvw;
+    }
 }
