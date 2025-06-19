@@ -302,7 +302,7 @@ span.ct-vertical{
 #demandGraph{
     width: 90dvw;
 }
-@media (max-width: 540px) {
+@media (max-width: 600px) {
     .card{
         border: none;
     }    
@@ -317,5 +317,18 @@ span.ct-vertical{
     }
     #demandGraph{
         width:100dvw;
+    }
+    #totals img{
+        margin: 0 auto;
+    }
+    #totals{
+        display:flex;
+        flex-direction: column;
+    }
+    .totals{
+        gap: 0.3rem;
+    }
+    .glide{
+        width: 100dvw;
     }
 }
