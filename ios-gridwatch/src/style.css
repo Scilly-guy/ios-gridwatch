@@ -301,6 +301,9 @@ span.ct-vertical{
 
 #demandGraph{
     width: 90dvw;
+    overflow:hidden;
+    resize: vertical;
+    min-height: 152px;
 }
 @media (max-width: 600px) {
     .card{
