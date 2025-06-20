@@ -1,5 +1,7 @@
 import { LineChart, FixedScaleAxis } from "chartist"
-import {data} from "./data"
+import { averageSummerDay } from "./averageSummerDay"
+import { averageWinterDay } from "./averageWinterDay"
+import { averageDay } from "./averageDay"
 let liveData={}
 const total=document.getElementById("total")
 const daily=document.getElementById("daily")
@@ -33,9 +35,10 @@ drawAverageChart()
 function drawAverageChart(){
     return new LineChart(
     '#demandGraph',{
-        series:[{
-            name: 'average demand',
-            data: data
+        series:[
+          {
+            name:'Average Day',
+            data:averageDay
           },
           {
             name:'pageLoad',
@@ -50,6 +53,14 @@ function drawAverageChart(){
           {
             name:'combined solar generation',
             data:combinedSolarData.map(d=>{return {x:d.x,y:d.y*scale.value}})
+          },
+          {
+            name:'Average Summer Day',
+            data:averageSummerDay
+          },
+          {
+            name:'Average Winter Day',
+            data:averageWinterDay
           }
         ]
       },
@@ -337,14 +348,14 @@ scrollButtonDialogRight.addEventListener('click',(e)=>{
 function demandAtTime(pointInTime){
     const referenceTime=referenceDay(pointInTime)
     let index=0
-    while(index<data.length && referenceTime.valueOf()>new Date(data[index].x).valueOf()){
+    while(index<averageDay.length && referenceTime.valueOf()>new Date(averageDay[index].x).valueOf()){
         index++
     }
     if (index==0){//the time is 00:00
-        return data[index].y
+        return averageDay[index].y
     }
-    const y1=data[index-1].y
-    const y2=data[index].y
+    const y1=averageDay[index-1].y
+    const y2=averageDay[index].y
     const mins=referenceTime.getMinutes()
     const xd=mins<30?mins:mins-30
     const changePerMinute=(y2-y1)/30
