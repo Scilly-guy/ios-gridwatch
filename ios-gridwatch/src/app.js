@@ -2,6 +2,10 @@ import { LineChart, FixedScaleAxis } from "chartist"
 import { averageSummerDay } from "./averageSummerDay"
 import { averageWinterDay } from "./averageWinterDay"
 import { averageDay } from "./averageDay"
+import { highestDemand } from "./highestDemand"
+import { lowestDemand } from "./lowestDemand"
+import { twoSTDsAbove } from "./twoSTDsAbove"
+import { twoSTDsBelow } from "./twoSTDsBelow"
 let liveData={}
 const total=document.getElementById("total")
 const daily=document.getElementById("daily")
@@ -28,40 +32,50 @@ const config_carousel={
 const scale=document.getElementById("scale")
 const scale_value=document.getElementById("scale_value")
 const sortingOptions=document.querySelectorAll("[name=sort]")
+const legend={
+    average:document.getElementById("legend_average"),
+    end:document.getElementById("legend_end"),
+    now:document.getElementById("legend_now"),
+    min:document.getElementById("legend_min"),
+    max:document.getElementById("legend_max"),
+    summer:document.getElementById("legend_summer"),
+    winter:document.getElementById("legend_winter"),
+    std:document.getElementById("legend_std"),
+    solar:document.getElementById("legend_solar")
+}
 const averagedDataTransition=referenceDay().valueOf()
 const combinedSolarData=[]
 drawAverageChart()
 
 function drawAverageChart(){
+    const noLine=[{x:referenceDay(),y:0},{x:referenceDay().valueOf()+1,y:0}]
+    const endLine=[{x:averagedDataTransition,y:3},{x:averagedDataTransition+100,y:0}]
+    const nowLine=[{x:referenceDay(),y:3},{x:referenceDay().valueOf()+100,y:0}]
+    const average={name:'Average Day',data:legend.average.checked?averageDay:noLine}
+    const end={name:'pageLoad',data:legend.solar.checked&&legend.end.checked?endLine:noLine}
+    const now={name:'Now',data:legend.now.checked?nowLine:noLine}
+    const summer={name:'Average Summer',data:legend.summer.checked?averageSummerDay:noLine}
+    const winter={name:'Average Winter',data:legend.winter.checked?averageWinterDay:noLine}
+    const low={name:'Two Standard Deviations Below',data:legend.std.checked?twoSTDsBelow:noLine}
+    const high={name:'Two Standard Deviations Above',data:legend.std.checked?twoSTDsAbove:noLine}
+    const solar={name:'Solar',data:legend.solar.checked?combinedSolarData.map(d=>{return {x:d.x,y:d.y*scale.value}}):noLine}
+    const lowest={name:'Lowest',data:legend.min.checked?lowestDemand:noLine}
+    const highest={name:'Average Winter',data:legend.max.checked?highestDemand:noLine}
+
+    const series=[]
     return new LineChart(
     '#demandGraph',{
         series:[
-          {
-            name:'Average Day',
-            data:averageDay
-          },
-          {
-            name:'pageLoad',
-            data:[{x:averagedDataTransition,y:3},
-            {x:averagedDataTransition+100,y:0}]
-          },
-          {
-            name:'now',
-            data:[{x:referenceDay(),y:3},
-            {x:referenceDay().valueOf()+100,y:0}]
-          },
-          {
-            name:'combined solar generation',
-            data:combinedSolarData.map(d=>{return {x:d.x,y:d.y*scale.value}})
-          },
-          {
-            name:'Average Summer Day',
-            data:averageSummerDay
-          },
-          {
-            name:'Average Winter Day',
-            data:averageWinterDay
-          }
+            average,
+            end,
+            now,
+            solar,
+            summer,
+            winter,
+            lowest,
+            highest, 
+            high,
+            low
         ]
       },
       {
@@ -187,6 +201,10 @@ sortingOptions.forEach(e=>{
     e.addEventListener("click",()=>{
         updateTable()
     })
+})
+
+document.querySelectorAll("[name=legend]").forEach(e=>{
+    e.addEventListener("input",drawAverageChart)
 })
 
 function createSiteRow(rank,siteData){
