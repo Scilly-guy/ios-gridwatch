@@ -6,6 +6,7 @@ import { highestDemand } from "./highestDemand"
 import { lowestDemand } from "./lowestDemand"
 import { twoSTDsAbove } from "./twoSTDsAbove"
 import { twoSTDsBelow } from "./twoSTDsBelow"
+import { roundUpToQuarterSignificant } from "./mathematicalFunctions"
 let liveData={}
 const total=document.getElementById("total")
 const daily=document.getElementById("daily")
@@ -32,6 +33,7 @@ const config_carousel={
 const scale=document.getElementById("scale")
 const scale_value=document.getElementById("scale_value")
 const sortingOptions=document.querySelectorAll("[name=sort]")
+const demandGraph=document.getElementById("demandGraph")
 const legend={
     average:document.getElementById("legend_average"),
     end:document.getElementById("legend_end"),
@@ -41,16 +43,42 @@ const legend={
     summer:document.getElementById("legend_summer"),
     winter:document.getElementById("legend_winter"),
     std:document.getElementById("legend_std"),
-    solar:document.getElementById("legend_solar")
+    solar:document.getElementById("legend_solar"),
+    max_value:{
+        average:averageDay.reduce((a,b)=>Math.max(a,b.y),0),
+        min:lowestDemand.reduce((a,b)=>Math.max(a,b.y),0),
+        max:highestDemand.reduce((a,b)=>Math.max(a,b.y),0),
+        summmer:averageSummerDay.reduce((a,b)=>Math.max(a,b.y),0),
+        winter:averageWinterDay.reduce((a,b)=>Math.max(a,b.y),0),
+        standard_deviation:twoSTDsBelow.reduce((a,b)=>Math.max(a,b.y),0),
+    }
 }
 const averagedDataTransition=referenceDay().valueOf()
 const combinedSolarData=[]
 drawAverageChart()
 
+console.log(roundUpToQuarterSignificant(0.1)+" was 0.1")
+console.log(roundUpToQuarterSignificant(0.023)+" was 0.023")
+console.log(roundUpToQuarterSignificant(126)+" was 126")
+console.log(roundUpToQuarterSignificant(3.6)+" was 3.6")
+console.log(roundUpToQuarterSignificant(10)+" was 10")
+console.log(roundUpToQuarterSignificant(2.34)+" was 2.34")
+console.log(roundUpToQuarterSignificant(17)+" was 17")
+
 function drawAverageChart(){
+    legend.max_value.solar=combinedSolarData.reduce((a,b)=>Math.max(a,b.y),0)*scale.value
+    const max_value=roundUpToQuarterSignificant(Math.max(
+        legend.average.checked?legend.max_value.average:0,
+        legend.solar.checked?legend.max_value.solar:0,
+        legend.min.checked?legend.max_value.min:0,
+        legend.max.checked?legend.max_value.max:0,
+        legend.summer.checked?legend.max_value.summmer:0,
+        legend.winter.checked?legend.max_value.winter:0,
+        legend.std.checked?legend.max_value.standard_deviation:0
+    ))
     const noLine=[{x:referenceDay(),y:0},{x:referenceDay().valueOf()+1,y:0}]
-    const endLine=[{x:averagedDataTransition,y:3},{x:averagedDataTransition+100,y:0}]
-    const nowLine=[{x:referenceDay(),y:3},{x:referenceDay().valueOf()+100,y:0}]
+    const endLine=[{x:averagedDataTransition,y:max_value},{x:averagedDataTransition+100,y:0}]
+    const nowLine=[{x:referenceDay(),y:max_value},{x:referenceDay().valueOf()+100,y:0}]
     const average={name:'Average Day',data:legend.average.checked?averageDay:noLine}
     const end={name:'pageLoad',data:legend.solar.checked&&legend.end.checked?endLine:noLine}
     const now={name:'Now',data:legend.now.checked?nowLine:noLine}
@@ -62,8 +90,7 @@ function drawAverageChart(){
     const lowest={name:'Lowest',data:legend.min.checked?lowestDemand:noLine}
     const highest={name:'Average Winter',data:legend.max.checked?highestDemand:noLine}
 
-    const series=[]
-    return new LineChart(
+    demandGraph.graph= new LineChart(
     '#demandGraph',{
         series:[
             average,
