@@ -57,14 +57,6 @@ const averagedDataTransition=referenceDay().valueOf()
 const combinedSolarData=[]
 drawAverageChart()
 
-console.log(roundUpToQuarterSignificant(0.1)+" was 0.1")
-console.log(roundUpToQuarterSignificant(0.023)+" was 0.023")
-console.log(roundUpToQuarterSignificant(126)+" was 126")
-console.log(roundUpToQuarterSignificant(3.6)+" was 3.6")
-console.log(roundUpToQuarterSignificant(10)+" was 10")
-console.log(roundUpToQuarterSignificant(2.34)+" was 2.34")
-console.log(roundUpToQuarterSignificant(17)+" was 17")
-
 function drawAverageChart(){
     legend.max_value.solar=combinedSolarData.reduce((a,b)=>Math.max(a,b.y),0)*scale.value
     const max_value=roundUpToQuarterSignificant(Math.max(
@@ -259,7 +251,7 @@ function createSiteCard(siteData){
     const obj=document.createElement('object')
     obj.setAttribute("data",`/imgs/${siteData.name}.png`)
     obj.type="image/png"
-    img.src="/imgs/RoofTop.png"
+    img.src="/imgs/Canopy.svg"
     name.textContent=siteData.name
     name.setAttributeNS(null,'data-name',siteData.name)
     const span=document.createElement('span')

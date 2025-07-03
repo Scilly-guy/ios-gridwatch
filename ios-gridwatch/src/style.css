@@ -22,7 +22,8 @@ body {
 
 h1{
     font-size: clamp(1rem, 4dvw + 0.2rem, 7rem);
-    margin: 0 auto;
+    margin: 0.5rem 0 2rem 0;
+    text-align: center;
 }
 
 .flex{
@@ -364,6 +365,15 @@ span.ct-vertical{
     font-weight: 600;
     margin:0 auto;
     text-align: center;
+}
+
+.footer img{
+    width:10dvw;
+    max-width: 200px;
+    min-width: 100px;
+}
+.footer{
+    font-size: 0.7rem;
 }
 
 #scale{
