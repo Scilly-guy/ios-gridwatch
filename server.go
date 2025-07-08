@@ -61,21 +61,32 @@ func main() {
 	e.GET("/site/:site/:period", func(c echo.Context) error {
 		siteName := c.Param("site")
 		period, err := strconv.ParseInt(c.Param("period"), 10, 64)
-		if err != nil {
-			log.Print("Error: ", err)
-			return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad period"})
-		}
 		w := c.Response()
 		//FIXME:CORS
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 
-		site_data, err := FetchSitePeriodData(siteName, int(period))
 		if err != nil {
 			log.Print("Error: ", err)
-			return c.JSON(http.StatusBadGateway, map[string]string{"message": "bad query"})
+			return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad period"})
 		}
 
-		return c.JSON(http.StatusOK, site_data)
+		if siteName == "all" {
+			site_data, err := FetchPeriodData(int(period))
+			if err != nil {
+				log.Print("Error: ", err)
+				return c.JSON(http.StatusBadGateway, map[string]string{"message": "bad query"})
+			}
+
+			return c.JSON(http.StatusOK, site_data)
+		} else {
+			site_data, err := FetchSitePeriodData(siteName, int(period))
+			if err != nil {
+				log.Print("Error: ", err)
+				return c.JSON(http.StatusBadGateway, map[string]string{"message": "bad query"})
+			}
+
+			return c.JSON(http.StatusOK, site_data)
+		}
 	})
 
 	e.GET("/site/all", func(c echo.Context) error {

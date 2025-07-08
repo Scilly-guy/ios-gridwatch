@@ -472,3 +472,96 @@ func FetchSitePeriodData(site string, numberOfDays int) (sitePeriodData SitePeri
 
 	return
 }
+
+func FetchPeriodData(numberOfDays int) (sitePeriodData []SitePeriodData, err error) {
+	var query1, query2, query3, query4, query5 string
+	query1 = fmt.Sprintf("solar_generation_meter")
+	query2 = fmt.Sprintf("solar_watts")
+	if numberOfDays < 1 {
+		numberOfDays = 1
+	}
+	var resolution string
+	switch {
+	case numberOfDays <= 1:
+		resolution = "1m"
+	case numberOfDays <= 7:
+		resolution = "15m"
+	case numberOfDays <= 31:
+		resolution = "30m"
+	default:
+		resolution = "2h"
+	}
+	query3 = fmt.Sprintf("solar_watts[%vd:%s]", numberOfDays, resolution)
+	query4 = fmt.Sprintf("increase(solar_generation_meter[%vd])", numberOfDays)
+	query5 = fmt.Sprintf("max_over_time(solar_watts[%vd])", numberOfDays)
+
+	meter, err := fetchPrometheusQuery(query1)
+	if err != nil {
+		return sitePeriodData, err
+	}
+	if len(meter) < 1 {
+		return sitePeriodData, errors.New("no results found")
+	}
+	for _, v := range meter {
+		siteData := SitePeriodData{Name: v.Metric.Site, Meter: v.GetValue()}
+		sitePeriodData = append(sitePeriodData, siteData)
+	}
+
+	current_generation, err := fetchPrometheusQuery(query2)
+	if err != nil {
+		return sitePeriodData, err
+	}
+
+	for _, v := range current_generation {
+		for i := range sitePeriodData {
+			if sitePeriodData[i].Name == v.Metric.Site {
+				sitePeriodData[i].Current = v.GetValue()
+				break
+			}
+		}
+	}
+
+	data, err := fetchPrometheusRangeQuery(query3)
+	if err != nil {
+		return sitePeriodData, err
+	}
+
+	for _, v := range data {
+		for i := range sitePeriodData {
+			if sitePeriodData[i].Name == v.Metric.Site {
+				sitePeriodData[i].Data = v.Values
+				break
+			}
+		}
+	}
+
+	period_generation, err := fetchPrometheusQuery(query4)
+	if err != nil {
+		return sitePeriodData, err
+	}
+
+	for _, v := range period_generation {
+		for i := range sitePeriodData {
+			if sitePeriodData[i].Name == v.Metric.Site {
+				sitePeriodData[i].Period = v.GetValue()
+				break
+			}
+		}
+	}
+
+	maximum, err := fetchPrometheusQuery(query5)
+	if err != nil {
+		return sitePeriodData, err
+	}
+
+	for _, v := range maximum {
+		for i := range sitePeriodData {
+			if sitePeriodData[i].Name == v.Metric.Site {
+				sitePeriodData[i].Max = v.GetValue()
+				break
+			}
+		}
+	}
+
+	return
+}
