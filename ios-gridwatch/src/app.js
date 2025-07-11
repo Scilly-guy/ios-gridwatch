@@ -7,22 +7,23 @@ import { lowestDemand } from "./lowestDemand"
 import { twoSTDsAbove } from "./twoSTDsAbove"
 import { twoSTDsBelow } from "./twoSTDsBelow"
 import { roundUpToQuarterSignificant } from "./mathematicalFunctions"
+import { initDropdown } from "./dropdown"
 let liveData={}
+const sitePeriodData={}
 const total=document.getElementById("total")
 const daily=document.getElementById("daily")
 const week=document.getElementById("week")
 const year=document.getElementById("year")
 const current=document.getElementById("current")
 const site_names=[]
-const siteName=document.getElementById("siteName")
 const bestProduction=document.getElementById("bestProduction")
 const rank=document.querySelector("#rank table tbody")
-const meterReading=document.getElementById("meterReading")
-const currentProduction=document.getElementById("currentProduction")
 const generationInPeriod=document.getElementById("generationInPeriod")
 const siteDialog=document.getElementById("siteOverview")
+const closeSiteDialog=document.getElementById("closeSiteOverview")
 const scrollButtonDialogLeft=document.getElementById("scroll-left")
 const scrollButtonDialogRight=document.getElementById("scroll-right")
+const siteSelection=document.getElementById("siteSelection")
 const sites_carousel=document.getElementById("sites")
 const glide_carousel=document.querySelector(".glide")
 const config_carousel={
@@ -112,7 +113,52 @@ function drawAverageChart(){
       }
     );
 }
+function drawSiteGraph(){
+    const period=document.querySelector('[name="period"]:checked').value
+    //set labeling for graph according to length of the period
+    let localeString={}
+    if(period<=1){
+        localeString.hour='numeric'
+        localeString.minute='numeric'
+        localeString.weekday='short'
+    }else if(period<=7){
+        localeString.weekday='short'
+        localeString.day='numeric'
+    }else{
+        localeString.day='numeric'
+        localeString.month='short'
+    }
 
+    const noLine=[{x:sitePeriodData[period.toString()][0].data[0][0],y:0},{x:sitePeriodData[period.toString()][0].data[0][0]+1,y:0}]
+    const series=[]
+    sitePeriodData[period.toString()].forEach(site=>{
+        const spacelessName=site.name.replaceAll(" ","")
+        if(document.querySelector("#"+spacelessName+"_checkbox").checked){
+            series.push(site.data.map((d)=>{return{x:d[0],y:d[1]}}))
+        }
+        else{
+            series.push(noLine)
+        }
+    })
+
+    console.log(series)
+    demandGraph.graph= new LineChart(
+    '#siteGraph',{
+        series
+      },
+      {
+        axisX: {
+          type: FixedScaleAxis,
+          divisor: 12,
+          labelInterpolationFnc: value =>
+            new Date(value).toLocaleString(undefined, localeString)
+        },
+        axisY:{
+            labelInterpolationFnc: value=>`${value}`
+        }
+      }
+    );
+}
 const time=document.getElementById("time")
 const averageDemand=document.getElementById("averageDemand")
 const percentOfDemand=document.getElementById("percentOfDemand")
@@ -191,12 +237,19 @@ document.addEventListener("DOMContentLoaded",()=>{
             sortedSites.forEach((site,i) => {
                 site_names.push(site.name)
                 sites_carousel.append(createSiteCard(site))
+                siteSelection.append(createSiteSelector(site.name))
                 addBullet(glide_carousel)
             });
             new Glide('.glide',config_carousel).mount()
-            const cards=document.querySelectorAll('.site-card').forEach(e=>{
+            const cards=document.querySelectorAll('.site-card span.name').forEach(e=>{
                 e.addEventListener('click',handleCardClick)
             })
+            initDropdown();
+            const dropDownOptions=document.querySelectorAll("[name='selectedSites']")
+            dropDownOptions.forEach(d=>{
+                d.addEventListener("input",handleSiteSelection)
+            })
+            fetchAllPeriodData(1)
         }
 
     })
@@ -234,7 +287,11 @@ function createSiteRow(rank,siteData){
     const meterCell=document.createElement('td')
     const maxPercentCell=document.createElement('td')
     rankCell.textContent=rank
-    nameCell.textContent=siteData.name
+    const name=document.createElement('a')
+    name.textContent=siteData.name
+    name.classList.add("name")
+    name.addEventListener("click",handleCardClick)
+    nameCell.append(name)
     generationCell.textContent=formatWatts(siteData.snapshot)
     meterCell.textContent=formatWatts(siteData.today*1000,true)
     maxPercentCell.textContent=siteData.max_percent.toFixed(2)+"%"
@@ -264,10 +321,31 @@ function createSiteCard(siteData){
     return li
 }
 
+function createSiteSelector(siteName){
+    const label=document.createElement("label")
+    label.textContent=siteName
+    label.classList.add("dropdown-option")
+    const checkbox=document.createElement("input")
+    const spacelessName=siteName.replaceAll(" ","")
+    checkbox.id=spacelessName+"_checkbox"
+    label.setAttribute("for",spacelessName+"_checkbox")
+    checkbox.name="selectedSites"
+    checkbox.type="checkbox"
+    label.append(checkbox)
+    return label
+}
+
+function handleSiteSelection(){
+    const selectedSites=document.querySelectorAll("[name='selectedSites']:checked")
+    let list=''
+    selectedSites.forEach((s)=>{list=list+" "+s.parentNode.textContent})
+}
+
 function handleCardClick(e){
-    const period=document.querySelector('[name="period"]:checked').value
-    const selectedSite=e.currentTarget.querySelector('.name').textContent
-    fetchPeriodData(selectedSite,period)
+    const siteName=e.currentTarget.textContent.replaceAll(" ","")
+    document.getElementById(siteName+"_checkbox").setAttribute("checked","checked")
+    drawSiteGraph()
+    siteDialog.show()
 }
 
 function addBullet(glide_el){
@@ -279,11 +357,18 @@ function addBullet(glide_el){
     bullets.append(button)
 }
 
-function handlePeriodSelection(e){
-    const period=e.currentTarget.parentNode.querySelector("[name='period'").value
-    const site=siteName.textContent
-    fetchPeriodData(site,period)
+function handlePeriodSelection(){
+    drawSiteGraph()
 }
+
+siteDialog.show=function(){
+    siteDialog.classList.remove("display-none")
+}
+siteDialog.close=function(){
+    siteDialog.classList.add("display-none")
+}
+
+closeSiteDialog.addEventListener("click",siteDialog.close)
 
 function fetchPeriodData(site,period){
     //set labeling for chart according to length of the period
@@ -303,15 +388,12 @@ function fetchPeriodData(site,period){
     const address=`/site/${selectedSite}/${period}`
     fetch(address).then((res)=>{
         res.json().then((data2)=>{
-            siteName.textContent=data2.name
-            meterReading.textContent=formatWatts(data2.meter,true)
-            currentProduction.textContent=formatWatts(data2.current)
             generationInPeriod.textContent=formatWatts(data2.generation_in_period,true)
             bestProduction.textContent=formatWatts(data2.max)
             const chartData=data2.data.map((d)=>{
                 return {x:new Date(d[0]*1000),y:d[1]}
             })
-            siteDialog.showModal()
+            siteDialog.show()
             new LineChart(
                 '#siteChart',{
                     series:[{
@@ -344,6 +426,24 @@ function fetchPeriodData(site,period){
     })
 }
 
+const periods=[1,7,31,365]
+let periodIndex=0;
+function fetchAllPeriodData(period){
+    const address=`/site/all/${period}`
+    fetch(address).then((res)=>{
+        res.json().then((data3)=>{
+            data3.forEach(d3=>{
+                d3.data.forEach(d=>d[0]*=1000)
+            })
+            sitePeriodData[period.toString()]=data3
+            periodIndex++;
+            if(periodIndex<periods.length){
+                fetchAllPeriodData(periods[periodIndex])
+            }
+        })
+    })
+}
+
 function fetchCombinedSolarData(){
     fetch("/site/all").then((res)=>{
         res.json().then((data3)=>{
@@ -364,23 +464,6 @@ function fetchCombinedSolarData(){
     })
 }
 fetchCombinedSolarData()
-
-scrollButtonDialogLeft.addEventListener('click',(e)=>{
-    const period=e.currentTarget.parentNode.parentNode.querySelector("[name='period']:checked").value
-    const currentSiteName=siteName.textContent
-    const currentIndex=site_names.indexOf(currentSiteName)
-    const newIndex=currentIndex-1>=0?currentIndex-1:currentIndex-1+site_names.length;
-    const newSite=site_names[newIndex]
-    fetchPeriodData(newSite,period)
-})
-scrollButtonDialogRight.addEventListener('click',(e)=>{
-    const period=e.currentTarget.parentNode.parentNode.querySelector("[name='period']:checked").value
-    const currentSiteName=siteName.textContent
-    const currentIndex=site_names.indexOf(currentSiteName)
-    const newIndex=currentIndex+1>=site_names.length?0:currentIndex+1;
-    const newSite=site_names[newIndex]
-    fetchPeriodData(newSite,period)
-})
 
 function demandAtTime(pointInTime){
     const referenceTime=referenceDay(pointInTime)

@@ -137,8 +137,9 @@ h1{
 }
 
 #siteChart{
-    width:70dvw;
+    width:95%;
     aspect-ratio: 1.6;
+    margin:0 auto;
 }
 
 .tabs{
@@ -239,6 +240,13 @@ h1{
 .ct-series-i{
     color: var(--series-standard-deviations);
 }
+.name{
+    text-decoration: underline;
+    cursor: pointer;
+}
+.name:hover{
+    color:var(--main-darker);
+}
 #legend{
     display:flex;
     flex-wrap: wrap;
@@ -248,9 +256,24 @@ h1{
 #legend>li{
     text-align: center;
 }
+.title-bar{
+    touch-action: none;
+    text-align: right;
+    height: fit-content;
+    padding:0.2rem;
+    background-color: var(--main);
+    cursor:move;
+}
 #siteOverview{
-    position: relative;
-    border-radius: 15px;
+    position: absolute;
+    top:2rem;
+    width:50dvw;
+    min-width: 600px;
+    left:min(25dvw, max(0px, calc(50dvw - 300px)));
+    border:2px solid var(--main);
+    border-radius: 5px;
+    background-color: white;
+    z-index: 2;
 }
 #siteOverview>button{
     position: absolute;
@@ -416,4 +439,12 @@ span.ct-vertical{
     .glide{
         width: 100dvw;
     }
+    #siteOverview{
+        width:100dvw;
+        left:0;
+        min-width: 200px;
+    }
+}
+.display-none{
+    display:none;
 }
