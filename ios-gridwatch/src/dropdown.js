@@ -13,7 +13,7 @@ export const initDropdown=function () {
         checkAll.textContent = 'Check All';
   
         if (checked.length === 0) {
-          label.textContent = 'Select Options';
+          label.textContent = 'Select Sites to display on graph';
         } else if (checked.length === 1) {
           const labelText = checked[0].closest('label')?.textContent.trim() || '1 Selected';
           label.textContent = labelText;

@@ -20,6 +20,7 @@ const bestProduction=document.getElementById("bestProduction")
 const rank=document.querySelector("#rank table tbody")
 const generationInPeriod=document.getElementById("generationInPeriod")
 const siteDialog=document.getElementById("siteOverview")
+const siteGraph=document.getElementById("siteGraph")
 const closeSiteDialog=document.getElementById("closeSiteOverview")
 const scrollButtonDialogLeft=document.getElementById("scroll-left")
 const scrollButtonDialogRight=document.getElementById("scroll-right")
@@ -113,51 +114,53 @@ function drawAverageChart(){
       }
     );
 }
-function drawSiteGraph(){
-    const period=document.querySelector('[name="period"]:checked').value
-    //set labeling for graph according to length of the period
-    let localeString={}
-    if(period<=1){
-        localeString.hour='numeric'
-        localeString.minute='numeric'
-        localeString.weekday='short'
-    }else if(period<=7){
-        localeString.weekday='short'
-        localeString.day='numeric'
-    }else{
-        localeString.day='numeric'
-        localeString.month='short'
-    }
-
-    const noLine=[{x:sitePeriodData[period.toString()][0].data[0][0],y:0},{x:sitePeriodData[period.toString()][0].data[0][0]+1,y:0}]
-    const series=[]
-    sitePeriodData[period.toString()].forEach(site=>{
-        const spacelessName=site.name.replaceAll(" ","")
-        if(document.querySelector("#"+spacelessName+"_checkbox").checked){
-            series.push(site.data.map((d)=>{return{x:d[0],y:d[1]}}))
+function drawSiteGraph(){ 
+    const checkedbox=document.querySelector('[name="period"]:checked')
+    if(!checkedbox.disabled){
+        const period=checkedbox.value
+        //set labeling for graph according to length of the period
+        let localeString={}
+        if(period<=1){
+            localeString.hour='numeric'
+            localeString.minute='numeric'
+            localeString.weekday='short'
+        }else if(period<=7){
+            localeString.weekday='short'
+            localeString.day='numeric'
+        }else{
+            localeString.day='numeric'
+            localeString.month='short'
         }
-        else{
-            series.push(noLine)
-        }
-    })
 
-    console.log(series)
-    demandGraph.graph= new LineChart(
-    '#siteGraph',{
-        series
-      },
-      {
-        axisX: {
-          type: FixedScaleAxis,
-          divisor: 12,
-          labelInterpolationFnc: value =>
-            new Date(value).toLocaleString(undefined, localeString)
+        const noLine=[{x:sitePeriodData[period.toString()][0].data[0][0],y:0},{x:sitePeriodData[period.toString()][0].data[0][0]+1,y:0}]
+        const series=[]
+        sitePeriodData[period.toString()].forEach(site=>{
+            const spacelessName=site.name.replaceAll(" ","")
+            if(document.querySelector("#"+spacelessName+"_checkbox").checked){
+                series.push(site.data.map((d)=>{return{x:d[0],y:d[1]}}))
+            }
+            else{
+                series.push(noLine)
+            }
+        })
+
+        demandGraph.graph= new LineChart(
+        '#siteGraph',{
+            series
         },
-        axisY:{
-            labelInterpolationFnc: value=>`${value}`
+        {
+            axisX: {
+            type: FixedScaleAxis,
+            divisor: 12,
+            labelInterpolationFnc: value =>
+                new Date(value).toLocaleString(undefined, localeString)
+            },
+            axisY:{
+                labelInterpolationFnc: value=>`${value}`
+            }
         }
-      }
-    );
+        );
+    }
 }
 const time=document.getElementById("time")
 const averageDemand=document.getElementById("averageDemand")
@@ -247,7 +250,7 @@ document.addEventListener("DOMContentLoaded",()=>{
             initDropdown();
             const dropDownOptions=document.querySelectorAll("[name='selectedSites']")
             dropDownOptions.forEach(d=>{
-                d.addEventListener("input",handleSiteSelection)
+                d.addEventListener("change",handleSiteSelection)
             })
             fetchAllPeriodData(1)
         }
@@ -259,8 +262,8 @@ document.addEventListener("DOMContentLoaded",()=>{
 })
 
 
-document.querySelectorAll('.periodSelector').forEach((s)=>{
-    s.addEventListener('click',handlePeriodSelection)
+document.querySelectorAll('[name="period"]').forEach((s)=>{
+    s.addEventListener('change',handlePeriodSelection)
 })
 
 scale_value.textContent=scale.value
@@ -278,6 +281,10 @@ sortingOptions.forEach(e=>{
 document.querySelectorAll("[name=legend]").forEach(e=>{
     e.addEventListener("input",drawAverageChart)
 })
+
+document.querySelector("a.dropdown-option").addEventListener("click",()=>{setTimeout(drawSiteGraph,0)})
+const resizeSiteGraph=new ResizeObserver(drawSiteGraph)
+resizeSiteGraph.observe(siteGraph)
 
 function createSiteRow(rank,siteData){
     const row=document.createElement('tr')
@@ -336,9 +343,7 @@ function createSiteSelector(siteName){
 }
 
 function handleSiteSelection(){
-    const selectedSites=document.querySelectorAll("[name='selectedSites']:checked")
-    let list=''
-    selectedSites.forEach((s)=>{list=list+" "+s.parentNode.textContent})
+    drawSiteGraph()
 }
 
 function handleCardClick(e){
@@ -435,7 +440,8 @@ function fetchAllPeriodData(period){
             data3.forEach(d3=>{
                 d3.data.forEach(d=>d[0]*=1000)
             })
-            sitePeriodData[period.toString()]=data3
+            sitePeriodData[period.toString()]=data3;
+            document.querySelector(`[name='period'][value='${periods[periodIndex]}']`).disabled=false;
             periodIndex++;
             if(periodIndex<periods.length){
                 fetchAllPeriodData(periods[periodIndex])

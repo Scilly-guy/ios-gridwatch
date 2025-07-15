@@ -136,10 +136,23 @@ h1{
     width: max-content;
 }
 
-#siteChart{
-    width:95%;
-    aspect-ratio: 1.6;
-    margin:0 auto;
+#siteGraph{
+    overflow:hidden;
+    resize: both;
+    position:relative;
+    z-index: 2;
+}
+#siteGraph::after{
+    content:" ";
+    position:absolute;
+    bottom: 0;
+    right:0;
+    width:3px;
+    height: 3px;
+    border-bottom:12px solid black;
+    border-right:12px solid transparent;
+    box-sizing: border-box;
+    rotate:-0.25turn;
 }
 
 .tabs{
@@ -180,65 +193,67 @@ h1{
 .ct-line{
     stroke-width:1px;
 }
-.ct-series-a .ct-line{
-    stroke:var(--series-average);
-}
-.ct-series-b .ct-line{
-    stroke:var(--graph-end-generation-average);
-    stroke-dasharray: 2px;
-    stroke-dashoffset: 2px;
-}
-.ct-series-c .ct-line{
-    stroke:var(--graph-now);
-    stroke-dasharray: 2px;
-}
-.ct-series-d .ct-line{
-    stroke:var(--series-solar);
-}
-.ct-series-e .ct-line{
-    stroke:var(--series-summer);
-}
-.ct-series-f .ct-line{
-    stroke:var(--series-winter);
-}
-.ct-series-g .ct-line{
-    stroke:var(--series-min);
-}
-.ct-series-h .ct-line{
-    stroke:var(--series-max);
-}
-.ct-series-i .ct-line{
-    stroke:var(--series-standard-deviations);
-}
-.ct-series-j .ct-line{
-    stroke:var(--series-standard-deviations);
-}
-.ct-series-a{
-    color: var(--series-average);
-}
-.ct-series-b{
-    color: var(--graph-end-generation-average);
-}
-.ct-series-c{
-    color: var(--graph-now);
-}
-.ct-series-d{
-    color: var(--series-solar);
-}
-.ct-series-e{
-    color: var(--series-summer);
-}
-.ct-series-f{
-    color: var(--series-winter);
-}
-.ct-series-g{
-    color: var(--series-min);
-}
-.ct-series-h{
-    color: var(--series-max);
-}
-.ct-series-i{
-    color: var(--series-standard-deviations);
+#demandGraph, #demandGraphLegend{
+    & .ct-series-a .ct-line{
+        stroke:var(--series-average);
+    }
+    & .ct-series-b .ct-line{
+        stroke:var(--graph-end-generation-average);
+        stroke-dasharray: 2px;
+        stroke-dashoffset: 2px;
+    }
+    & .ct-series-c .ct-line{
+        stroke:var(--graph-now);
+        stroke-dasharray: 2px;
+    }
+    & .ct-series-d .ct-line{
+        stroke:var(--series-solar);
+    }
+    & .ct-series-e .ct-line{
+        stroke:var(--series-summer);
+    }
+    & .ct-series-f .ct-line{
+        stroke:var(--series-winter);
+    }
+    & .ct-series-g .ct-line{
+        stroke:var(--series-min);
+    }
+    & .ct-series-h .ct-line{
+        stroke:var(--series-max);
+    }
+    & .ct-series-i .ct-line{
+        stroke:var(--series-standard-deviations);
+    }
+    & .ct-series-j .ct-line{
+        stroke:var(--series-standard-deviations);
+    }
+    & .ct-series-a{
+        color: var(--series-average);
+    }
+    & .ct-series-b{
+        color: var(--graph-end-generation-average);
+    }
+    & .ct-series-c{
+        color: var(--graph-now);
+    }
+    & .ct-series-d{
+        color: var(--series-solar);
+    }
+    & .ct-series-e{
+        color: var(--series-summer);
+    }
+    & .ct-series-f{
+        color: var(--series-winter);
+    }
+    & .ct-series-g{
+        color: var(--series-min);
+    }
+    & .ct-series-h{
+        color: var(--series-max);
+    }
+    & .ct-series-i{
+        color: var(--series-standard-deviations);
+    }
 }
 .name{
     text-decoration: underline;
@@ -247,13 +262,13 @@ h1{
 .name:hover{
     color:var(--main-darker);
 }
-#legend{
+#demandGraphLegend{
     display:flex;
     flex-wrap: wrap;
     justify-content: space-evenly;
     gap:1rem;
 }
-#legend>li{
+#demandGraphLegend>li{
     text-align: center;
 }
 .title-bar{
@@ -267,7 +282,7 @@ h1{
 #siteOverview{
     position: absolute;
     top:2rem;
-    width:50dvw;
+    width:fit-content;
     min-width: 600px;
     left:min(25dvw, max(0px, calc(50dvw - 300px)));
     border:2px solid var(--main);
