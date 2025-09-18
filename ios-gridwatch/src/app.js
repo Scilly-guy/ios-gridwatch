@@ -418,62 +418,6 @@ siteDialog.close=function(){
 
 closeSiteDialog.addEventListener("click",siteDialog.close)
 
-function fetchPeriodData(site,period){
-    //set labeling for chart according to length of the period
-    let localeString={}
-    if(period<=1){
-        localeString.hour='numeric'
-        localeString.minute='numeric'
-        localeString.weekday='short'
-    }else if(period<=7){
-        localeString.weekday='short'
-        localeString.day='numeric'
-    }else{
-        localeString.day='numeric'
-        localeString.month='short'
-    }
-    let selectedSite=site.replaceAll(' ','+')
-    const address=`/site/${selectedSite}/${period}`
-    fetch(address).then((res)=>{
-        res.json().then((data2)=>{
-            generationInPeriod.textContent=formatWatts(data2.generation_in_period,true)
-            bestProduction.textContent=formatWatts(data2.max)
-            const chartData=data2.data.map((d)=>{
-                return {x:new Date(d[0]*1000),y:d[1]}
-            })
-            siteDialog.show()
-            new LineChart(
-                '#siteChart',{
-                    series:[{
-                        name: 'solar generation',
-                        data: chartData
-                      }
-                    ]
-                  },
-                  {
-                    axisX: {
-                      type: FixedScaleAxis,
-                      divisor: 5,
-                      labelInterpolationFnc: value =>
-                        new Date(value).toLocaleString(undefined, localeString)
-                    }
-                  }
-                );
-
-            /*setTimeout(()=>{
-            document.querySelectorAll('.ct-line').forEach(ct_line=>{
-                ct_line.classList.add("chart-line");
-                ct_line.classList.remove('ct-line')
-            })
-            document.querySelectorAll('.ct-point').forEach(ct_point=>{
-                ct_point.classList.add("chart-point");
-                ct_point.classList.remove('ct-point')
-            })
-            },5)*/
-        })
-    })
-}
-
 function fetchAllPeriodData(periodIndex){
     const address=`/site/all/${periods[periodIndex]}`
     fetch(address).then((res)=>{
