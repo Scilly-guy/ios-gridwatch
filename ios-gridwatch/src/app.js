@@ -109,7 +109,7 @@ const legend={
     }
 }
 const averagedDataTransitionX=referenceDay().valueOf()
-const combinedSolarData=new Float64RingBuffer(200000)
+const combinedSolarData=new Float64RingBuffer(3000)
 drawAverageChart()
 
 function drawAverageChart(){
