@@ -18,7 +18,6 @@ const daily=document.getElementById("daily")
 const week=document.getElementById("week")
 const year=document.getElementById("year")
 const current=document.getElementById("current")
-const site_names=[]
 const bestProduction=document.getElementById("bestProduction")
 const rank=document.querySelector("#rank table tbody")
 const generationInPeriod=document.getElementById("generationInPeriod")
@@ -283,7 +282,6 @@ document.addEventListener("DOMContentLoaded",()=>{
         else{ //if first message
             const sortedSites=liveData['sites'].sort((a,b)=>b.snapshot-a.snapshot)
             sortedSites.forEach((site,i) => {
-                site_names.push(site.name)
                 sites_carousel.append(createSiteCard(site))
                 siteSelection.append(createSiteSelector(site.name))
                 addBullet(glide_carousel)
