@@ -288,6 +288,7 @@ func fetchPrometheusVectorQuery(query string) (PrometheusVectorData, error) {
 		return PrometheusVectorData{}, err
 	}
 	if len(promResp.Data.Result) == 0 {
+		log.Print(url)
 		return PrometheusVectorData{}, errors.New("error with prometheus query")
 	}
 	return promResp.Data.Result[0], nil
@@ -382,11 +383,9 @@ type PeriodData struct {
 }
 
 func FetchTodaysGenerationData() (periodData PeriodData, err error) {
-	log.Print("Fetching todays generation data")
 	now := time.Now()
 	query := fmt.Sprintf("sum(avg_over_time(solar_watts[30m]))&start=%vZ&end=%vZ&step=1800", now.Format("2006-01-02T00:00:00"), now.Format("2006-01-02T15:04:05"))
 	url := fmt.Sprintf("%v_range?query=%v", prometheusURL, query)
-	log.Print(url)
 	resp, err := http.Get(url)
 	if err != nil {
 		return PeriodData{}, err
@@ -398,16 +397,12 @@ func FetchTodaysGenerationData() (periodData PeriodData, err error) {
 		return PeriodData{}, err
 	}
 
-	log.Print("Get carried out")
-
 	// Parse JSON response
 	var promResp PeriodDataResponse
 	err = json.Unmarshal(body, &promResp)
 	if err != nil {
 		return PeriodData{}, err
 	}
-
-	log.Print("Unmarshalled PeriodData")
 	return promResp.Data.Result[0], nil
 }
 

@@ -8,8 +8,61 @@ import { twoSTDsAbove } from "./twoSTDsAbove"
 import { twoSTDsBelow } from "./twoSTDsBelow"
 import { roundUpToQuarterSignificant } from "./mathematicalFunctions"
 import { initDropdown } from "./dropdown"
+class Float64RingBuffer {
+  constructor(size) {
+    this.size = size;
+    this.xBuffer = new Float64Array(size);
+    this.yBuffer = new Float64Array(size);
+    this.index = 0;
+    this.count = 0;
+  }
+
+  push(...points) {
+    for (const point of points) {
+      const { x, y } = point;
+      this.xBuffer[this.index] = x;
+      this.yBuffer[this.index] = y;
+
+      this.index = (this.index + 1) % this.size;
+      if (this.count < this.size) this.count++;
+    }
+  }
+
+  getHighestY(){
+    return this.yBuffer.reduce((a,b)=>Math.max(a,b),0)
+  }
+
+  getValues(scale=1) {
+    const result = [];
+    const start = this.count === this.size ? this.index : 0;
+    for (let i = 0; i < this.count; i++) {
+        const idx = (start + i) % this.size;
+        if (this.xBuffer[idx] != 0) {
+            result.push({
+                x: this.xBuffer[idx],
+                y: this.yBuffer[idx] * scale
+            });
+        }
+    }
+    return result;
+}
+  editRecent(n, point) {
+    if (n >= this.count) throw new RangeError("Not enough elements in buffer");
+    const idx = (this.index - 1 - n + this.size) % this.size;
+    if (point.x !== undefined) this.xBuffer[idx] = point.x;
+    if (point.y !== undefined) this.yBuffer[idx] = point.y;
+    }
+
+  getRecent(n) {
+    if (n >= this.count) throw new RangeError("Not enough elements in buffer");
+    const idx = (this.index - 1 - n + this.size) % this.size;
+    return {x:this.xBuffer[idx],y:this.yBuffer[idx]}
+    }
+}
+
 let liveData={}
 const sitePeriodData={}
+const periods=[1,7,31,365]
 const total=document.getElementById("total")
 const daily=document.getElementById("daily")
 const week=document.getElementById("week")
@@ -55,12 +108,12 @@ const legend={
         standard_deviation:twoSTDsBelow.reduce((a,b)=>Math.max(a,b.y),0),
     }
 }
-const averagedDataTransition=referenceDay().valueOf()
-const combinedSolarData=[]
+const averagedDataTransitionX=referenceDay().valueOf()
+const combinedSolarData=new Float64RingBuffer(200000)
 drawAverageChart()
 
 function drawAverageChart(){
-    legend.max_value.solar=combinedSolarData.reduce((a,b)=>Math.max(a,b.y),0)*scale.value
+    legend.max_value.solar=combinedSolarData.getHighestY()*scale.value
     const max_value=roundUpToQuarterSignificant(Math.max(
         legend.average.checked?legend.max_value.average:0,
         legend.solar.checked?legend.max_value.solar:0,
@@ -71,7 +124,8 @@ function drawAverageChart(){
         legend.std.checked?legend.max_value.standard_deviation:0
     ))
     const noLine=[{x:referenceDay(),y:0},{x:referenceDay().valueOf()+1,y:0}]
-    const endLine=[{x:averagedDataTransition,y:max_value},{x:averagedDataTransition+100,y:0}]
+    const solarData=legend.solar.checked?combinedSolarData.getValues(scale.value):noLine;
+    const endLine=[{x:averagedDataTransitionX,y:max_value},{x:averagedDataTransitionX+100,y:0}]
     const nowLine=[{x:referenceDay(),y:max_value},{x:referenceDay().valueOf()+100,y:0}]
     const average={name:'Average Day',data:legend.average.checked?averageDay:noLine}
     const end={name:'pageLoad',data:legend.solar.checked&&legend.end.checked?endLine:noLine}
@@ -80,39 +134,58 @@ function drawAverageChart(){
     const winter={name:'Average Winter',data:legend.winter.checked?averageWinterDay:noLine}
     const low={name:'Two Standard Deviations Below',data:legend.std.checked?twoSTDsBelow:noLine}
     const high={name:'Two Standard Deviations Above',data:legend.std.checked?twoSTDsAbove:noLine}
-    const solar={name:'Solar',data:legend.solar.checked?combinedSolarData.map(d=>{return {x:d.x,y:d.y*scale.value}}):noLine}
+    const solar={name:'Solar',data:solarData}
     const lowest={name:'Lowest',data:legend.min.checked?lowestDemand:noLine}
     const highest={name:'Average Winter',data:legend.max.checked?highestDemand:noLine}
 
-    demandGraph.graph= new LineChart(
-    '#demandGraph',{
-        series:[
-            average,
-            end,
-            now,
-            solar,
-            summer,
-            winter,
-            lowest,
-            highest, 
-            high,
-            low
-        ]
-      },
-      {
-        axisX: {
-          type: FixedScaleAxis,
-          divisor: 12,
-          labelInterpolationFnc: value =>
-            new Date(value).toLocaleString(undefined, 
-                {hour:'numeric',
-                minute:'numeric'})
+    if(demandGraph.graph){
+        demandGraph.graph.update({
+            series:[
+                average,
+                end,
+                now,
+                solar,
+                summer,
+                winter,
+                lowest,
+                highest, 
+                high,
+                low
+            ]
+        })
+    }
+    else{
+        demandGraph.graph= new LineChart(
+        '#demandGraph',{
+            series:[
+                average,
+                end,
+                now,
+                solar,
+                summer,
+                winter,
+                lowest,
+                highest, 
+                high,
+                low
+            ]
         },
-        axisY:{
-            labelInterpolationFnc: value=>`${value} MW`
+        {
+            axisX: {
+            type: FixedScaleAxis,
+            divisor: 12,
+            labelInterpolationFnc: value =>
+                new Date(value).toLocaleString(undefined, 
+                    {hour:'numeric',
+                    minute:'numeric'})
+            },
+            axisY:{
+                labelInterpolationFnc: value=>`${value} MW`
+            }
         }
-      }
-    );
+        );
+    }
+    
 }
 function drawSiteGraph(){ 
     const checkedbox=document.querySelector('[name="period"]:checked')
@@ -131,35 +204,40 @@ function drawSiteGraph(){
             localeString.day='numeric'
             localeString.month='short'
         }
-
-        const noLine=[{x:sitePeriodData[period.toString()][0].data[0][0],y:0},{x:sitePeriodData[period.toString()][0].data[0][0]+1,y:0}]
+        const noLine=[{x:Date.now()-1,y:0},{x:Date.now(),y:0}]
         const series=[]
-        sitePeriodData[period.toString()].forEach(site=>{
-            const spacelessName=site.name.replaceAll(" ","")
-            if(document.querySelector("#"+spacelessName+"_checkbox").checked){
-                series.push(site.data.map((d)=>{return{x:d[0],y:d[1]}}))
-            }
-            else{
-                series.push(noLine)
-            }
-        })
-
-        demandGraph.graph= new LineChart(
-        '#siteGraph',{
-            series
-        },
-        {
-            axisX: {
-            type: FixedScaleAxis,
-            divisor: 12,
-            labelInterpolationFnc: value =>
-                new Date(value).toLocaleString(undefined, localeString)
-            },
-            axisY:{
-                labelInterpolationFnc: value=>`${value}`
-            }
+        if(Object.keys(sitePeriodData).length>0){
+            sitePeriodData[period.toString()].forEach(site=>{
+                const spacelessName=site.name.replaceAll(" ","")
+                if(document.querySelector("#"+spacelessName+"_checkbox").checked){
+                    series.push(site.data.map((d)=>{return{x:d[0],y:d[1]}}))
+                }
+                else{
+                    series.push(noLine)
+                }
+            })
         }
-        );
+        if(siteGraph.graph){
+            siteGraph.graph.update({series})
+        }
+        else{
+            siteGraph.graph= new LineChart(
+            '#siteGraph',{
+                series
+            },
+            {
+                axisX: {
+                type: FixedScaleAxis,
+                divisor: 12,
+                labelInterpolationFnc: value =>
+                    new Date(value).toLocaleString(undefined, localeString)
+                },
+                axisY:{
+                    labelInterpolationFnc: value=>`${value}`
+                }
+            }
+            );
+        }
     }
 }
 const time=document.getElementById("time")
@@ -189,15 +267,13 @@ function updateTable(){
         option=selected.value
     }
     switch(option){
-        case "generation":
-            liveData.sites.sort((a,b)=>b.snapshot-a.snapshot)
-            break;
         case "meter":
             liveData.sites.sort((a,b)=>b.today-a.today)
             break;
         case "max":
             liveData.sites.sort((a,b)=>b.max_percent-a.max_percent)
             break;
+        case "generation":
         default:
             liveData.sites.sort((a,b)=>b.snapshot-a.snapshot)
             break;
@@ -208,6 +284,27 @@ function updateTable(){
     liveData.sites.forEach((site,i)=>{
         rank.append(createSiteRow(i+1,site))
     })
+}
+
+function updateSiteOverview() {
+    const selectedPeriod=document.querySelector("[name='period']:checked").value.toString()
+    const selectedSites=Array.from(document.querySelectorAll(".dropdown-option:has([type=checkbox]:checked)")).map(s=>s.textContent)
+    let generation_in_period=0
+    let highest=0
+    let bestSite=''
+    sitePeriodData[selectedPeriod].forEach(site=>{
+        const found=selectedSites.indexOf(site.name)
+        if(found>=0){
+            generation_in_period+=site.generation_in_period
+            if(site.max>highest){
+                highest=site.max
+                bestSite=site.name
+            }
+        }
+    })
+    generationInPeriod.textContent=formatWatts(generation_in_period,true)
+    bestProduction.textContent=`${bestSite} with ${formatWatts(highest)}`
+    drawSiteGraph()
 }
 
 document.addEventListener("DOMContentLoaded",()=>{
@@ -252,7 +349,7 @@ document.addEventListener("DOMContentLoaded",()=>{
             dropDownOptions.forEach(d=>{
                 d.addEventListener("change",handleSiteSelection)
             })
-            fetchAllPeriodData(1)
+            fetchAllPeriodData(0)
         }
 
     })
@@ -282,7 +379,7 @@ document.querySelectorAll("[name=legend]").forEach(e=>{
     e.addEventListener("input",drawAverageChart)
 })
 
-document.querySelector("a.dropdown-option").addEventListener("click",()=>{setTimeout(drawSiteGraph,0)})
+document.getElementById("selectAllSites").addEventListener("click",()=>{setTimeout(updateSiteOverview,0)})
 const resizeSiteGraph=new ResizeObserver(drawSiteGraph)
 resizeSiteGraph.observe(siteGraph)
 
@@ -343,13 +440,13 @@ function createSiteSelector(siteName){
 }
 
 function handleSiteSelection(){
-    drawSiteGraph()
+    updateSiteOverview()
 }
 
 function handleCardClick(e){
     const siteName=e.currentTarget.textContent.replaceAll(" ","")
     document.getElementById(siteName+"_checkbox").setAttribute("checked","checked")
-    drawSiteGraph()
+    updateSiteOverview()
     siteDialog.show()
 }
 
@@ -363,7 +460,7 @@ function addBullet(glide_el){
 }
 
 function handlePeriodSelection(){
-    drawSiteGraph()
+    updateSiteOverview()
 }
 
 siteDialog.show=function(){
@@ -431,20 +528,18 @@ function fetchPeriodData(site,period){
     })
 }
 
-const periods=[1,7,31,365]
-let periodIndex=0;
-function fetchAllPeriodData(period){
-    const address=`/site/all/${period}`
+function fetchAllPeriodData(periodIndex){
+    const address=`/site/all/${periods[periodIndex]}`
     fetch(address).then((res)=>{
         res.json().then((data3)=>{
             data3.forEach(d3=>{
                 d3.data.forEach(d=>d[0]*=1000)
             })
-            sitePeriodData[period.toString()]=data3;
+            sitePeriodData[periods[periodIndex].toString()]=data3;
             document.querySelector(`[name='period'][value='${periods[periodIndex]}']`).disabled=false;
             periodIndex++;
             if(periodIndex<periods.length){
-                fetchAllPeriodData(periods[periodIndex])
+                fetchAllPeriodData(periodIndex)
             }
         })
     })
@@ -459,12 +554,10 @@ function fetchCombinedSolarData(){
                     y:parseFloat(r[1]/1000000)//the supplied value is in watts, convert to MW for the graph
                 }
             }))
-            //most recent point should not be 15 minutes less
-            combinedSolarData[combinedSolarData.length-1].x+=(15*60*1000)
-            //most recent point should be halfway between now and 15 minutes after the one before
-            const zero=combinedSolarData[combinedSolarData.length-2].x+(15*60*1000)
+            //move the most recent point to the appropriate time on the graph
+            const zero=combinedSolarData.getRecent(1).x+(15*60*1000)
             const lastAveragedPoint=zero+(referenceDay().valueOf()-zero)/2
-            combinedSolarData[combinedSolarData.length-1].x=lastAveragedPoint
+            combinedSolarData.editRecent(0,{x:lastAveragedPoint})
             drawAverageChart()
         })
     })
@@ -504,6 +597,7 @@ function formatWatts(watts,wattHour=false) {
   
     return `${value.toFixed(2)} ${units[index]}${wattHour?'h':''}`;
   }
+
 
 
 
