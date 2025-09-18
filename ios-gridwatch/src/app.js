@@ -34,6 +34,7 @@ const config_carousel={
 }
 const scale=document.getElementById("scale")
 const scale_value=document.getElementById("scale_value")
+scale_value.textContent=scale.value
 const sortingOptions=document.querySelectorAll("[name=sort]")
 const demandGraph=document.getElementById("demandGraph")
 const legend={
@@ -57,8 +58,15 @@ const legend={
 }
 const averagedDataTransitionX=referenceDay().valueOf()
 const combinedSolarData=new Float64RingBuffer(3000)
+const resizeSiteGraph=new ResizeObserver(drawSiteGraph)
+const time=document.getElementById("time")
+const averageDemand=document.getElementById("averageDemand")
+const percentOfDemand=document.getElementById("percentOfDemand")
+resizeSiteGraph.observe(siteGraph)
 drawAverageChart()
+fetchCombinedSolarData()
 
+//RENDER FUNCTIONS 
 function drawAverageChart(){
     legend.max_value.solar=combinedSolarData.getHighestY()*scale.value
     const max_value=roundUpToQuarterSignificant(Math.max(
@@ -187,9 +195,6 @@ function drawSiteGraph(){
         }
     }
 }
-const time=document.getElementById("time")
-const averageDemand=document.getElementById("averageDemand")
-const percentOfDemand=document.getElementById("percentOfDemand")
 
 function updateDemand(currentGeneration){
     time.textContent=new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})
@@ -254,8 +259,11 @@ function updateSiteOverview() {
     drawSiteGraph()
 }
 
+//EVENT LISTENERS
 document.addEventListener("DOMContentLoaded",()=>{
     const eventSource=new EventSource("/sse")
+
+    //MAIN UPDATE EVENT
     eventSource.addEventListener("message",(e)=>{
 
         liveData=JSON.parse(e.data);
@@ -304,12 +312,10 @@ document.addEventListener("DOMContentLoaded",()=>{
     })
 })
 
-
 document.querySelectorAll('[name="period"]').forEach((s)=>{
     s.addEventListener('change',handlePeriodSelection)
 })
 
-scale_value.textContent=scale.value
 scale.addEventListener("input",()=>{
     scale_value.textContent=scale.value
     drawAverageChart()
@@ -326,9 +332,10 @@ document.querySelectorAll("[name=legend]").forEach(e=>{
 })
 
 document.getElementById("selectAllSites").addEventListener("click",()=>{setTimeout(updateSiteOverview,0)})
-const resizeSiteGraph=new ResizeObserver(drawSiteGraph)
-resizeSiteGraph.observe(siteGraph)
 
+closeSiteDialog.addEventListener("click",siteDialog.close)
+
+//ELEMENT FACTORIES
 function createSiteRow(rank,siteData){
     const row=document.createElement('tr')
     const rankCell=document.createElement('td')
@@ -385,17 +392,6 @@ function createSiteSelector(siteName){
     return label
 }
 
-function handleSiteSelection(){
-    updateSiteOverview()
-}
-
-function handleCardClick(e){
-    const siteName=e.currentTarget.textContent.replaceAll(" ","")
-    document.getElementById(siteName+"_checkbox").setAttribute("checked","checked")
-    updateSiteOverview()
-    siteDialog.show()
-}
-
 function addBullet(glide_el){
     const bullets=glide_el.querySelector(".glide__bullets")
     const current_number=bullets.children.length
@@ -405,8 +401,19 @@ function addBullet(glide_el){
     bullets.append(button)
 }
 
+//Handle functions
+function handleSiteSelection(){
+    updateSiteOverview()
+}
+
 function handlePeriodSelection(){
     updateSiteOverview()
+}
+function handleCardClick(e){
+    const siteName=e.currentTarget.textContent.replaceAll(" ","")
+    document.getElementById(siteName+"_checkbox").setAttribute("checked","checked")
+    updateSiteOverview()
+    siteDialog.show()
 }
 
 siteDialog.show=function(){
@@ -416,8 +423,7 @@ siteDialog.close=function(){
     siteDialog.classList.add("display-none")
 }
 
-closeSiteDialog.addEventListener("click",siteDialog.close)
-
+//Fetch Functions
 function fetchAllPeriodData(periodIndex){
     const address=`/site/all/${periods[periodIndex]}`
     fetch(address).then((res)=>{
@@ -452,8 +458,8 @@ function fetchCombinedSolarData(){
         })
     })
 }
-fetchCombinedSolarData()
 
+//Helper functions
 function demandAtTime(pointInTime){
     const referenceTime=referenceDay(pointInTime)
     let index=0
