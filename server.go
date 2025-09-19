@@ -29,31 +29,44 @@ func main() {
 		w.Header().Set("Connection", "keep-alive")
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 
+		send := func() error {
+			solarData, err := get_solar_data()
+			if err != nil {
+				log.Print("Error:", err)
+				return err
+			}
+			data, jsonErr := json.Marshal(solarData)
+			if jsonErr != nil {
+				log.Print("Error:", jsonErr)
+				return jsonErr
+			}
+			event := Event{
+				Data: []byte(data),
+			}
+			if err := event.MarshalTo(w); err != nil {
+				return err
+			}
+			w.Flush()
+			return nil
+		}
+
+		// send initial event
+		if err := send(); err != nil {
+			return nil
+		}
+
 		ticker := time.NewTicker(60 * time.Second)
 		defer ticker.Stop()
+
 		for {
 			select {
 			case <-c.Request().Context().Done():
 				log.Printf("SSE client disconnected, ip:%v", c.RealIP())
 				return nil
 			case <-ticker.C:
-				solar_data, err := get_solar_data()
-				if err != nil {
-					log.Print("Error:", err)
+				if err := send(); err != nil {
 					return nil
 				}
-				data, jsonErr := json.Marshal(solar_data)
-				if jsonErr != nil {
-					log.Print("Error:", jsonErr)
-					return nil
-				}
-				event := Event{
-					Data: []byte(data),
-				}
-				if err := event.MarshalTo(w); err != nil {
-					return err
-				}
-				w.Flush()
 			}
 		}
 	})
