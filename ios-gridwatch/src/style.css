@@ -20,6 +20,10 @@ body {
     color:var(--main);
 }
 
+modal {
+    display:none;
+}
+
 h1{
     font-size: clamp(1rem, 4dvw + 0.2rem, 7rem);
     margin: 0.5rem 0 2rem 0;
@@ -143,6 +147,14 @@ h1{
     padding:0.3rem 0.4rem;
     font-weight: bolder;
     width: max-content;
+}
+
+.explain{
+    color:var(--main-focus);
+    font-size: x-small;
+    cursor:pointer;
+    text-decoration: underline;
+    letter-spacing: 0.05rem;
 }
 
 #siteGraph{
@@ -400,6 +412,7 @@ span.ct-vertical{
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: space-between;
 }
 
 .column p{

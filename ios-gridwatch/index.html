@@ -47,9 +47,32 @@
                     <label for="total"><h2>Total Solar</h3></label>
                     <span id="total" class="highlight-output"></span>
                 </li>
+                <li>
+                    <a class="explain" id="explainTotalsLink">What do these numbers mean?</a>
+                </li>
             </ul>
         </div>
-        <div id="rank" class="card">
+        <section id="explainTotals" class="display-none">
+            <div class="title-bar">
+                Explanation of Stats
+                <button id="closeExplainTotals">X</button>
+            </div>
+            <ul>
+                <li>Live Generation: How much power is being generated right now.</li>
+                <li>Today: How much energy has been produced since midnight, this is the sum of all increases of the generation meters.</li>
+                <li>Last 7 Days: How much energy has been produced in the last 7 &times; 24 hours.</li>
+                <li>Last 365 Days: How much energy has been produced in the last 365 &times; 24 hours.</li>
+                <li>Total Solar: How much energy has been produced by all the solar panels in their lifetimes.</li>
+                <li>The number inside the sun shows a countdown to the estimated time of the next update in seconds.</li>
+                <li>W (watts): Watts are a measure of power. A typical energy efficient lightbulb uses 4-10 watts.</li>
+                <li>kW (kilowatts): 1,000 watts. An electric kettle usually requires 3kW.</li>
+                <li>mW (megawatts): 1,000 kilowatts or 1,000,000 watts. Typical demand for all of Scilly is around 2 megawatts.</li>
+                <li>Wh (watt hours): Watt hours are a measure of supplied power. 1 watt hour can power a 4 watt lightbulb for 1 quarter (1/4) of an hour (15 minutes).</li>
+                <li>kWh (kilowatt hours): Kilowatt hours are the standard unit of supplied electricity. An average UK house hold with electric heating uses approximately 4,000kWh annually.</li>
+                <li>mWh (megawatt hours): 1,000 kilowatt hours. A consistent demand of 2mW for a day is 48 megawatt hours.</li>
+            </ul>
+        </section>
+        <div id="rank" class="column card">
             <table>
                 <thead>
                     <th>Rank</th>
@@ -60,7 +83,26 @@
                 </thead>
                 <tbody></tbody>
             </table>
+            <a class="explain" id="explainRanksLink">What do these numbers mean?</a>
         </div>
+        <section id="explainRanks" class="display-none">
+            <div class="title-bar">
+                Explanation of Rankings Table
+                <button id="closeExplainRanks">X</button>
+            </div>
+            <ul>
+                <li>Generation: How much power is being generated right now at that site.</li>
+                <li>Meter: The current meter reading at that site.</li>
+                <li>&percnt; of max: How close the site is to its highest output in the last year. Some sites are limited by their inverter so may regularly reach their peak, it is not cost effective to install a larger inverter.</li>
+                <li>The heading in <b>bold</b> denotes which column the data is currently sorted by. Click a heading to sort the data by it.</li>
+                <li>W (watts): Watts are a measure of power. A typical energy efficient lightbulb uses 4-10 watts.</li>
+                <li>kW (kilowatts): 1,000 watts. An electric kettle usually requires 3kW.</li>
+                <li>mW (megawatts): 1,000 kilowatts or 1,000,000 watts. Typical demand for all of Scilly is around 2 megawatts.</li>
+                <li>Wh (watt hours): Watt hours are a measure of supplied power. 1 watt hour can power a 4 watt lightbulb for 1 quarter (1/4) of an hour (15 minutes).</li>
+                <li>kWh (kilowatt hours): Kilowatt hours are the standard unit of supplied electricity. An average UK house hold with electric heating uses approximately 4,000kWh annually.</li>
+                <li>mWh (megawatt hours): 1,000 kilowatt hours. A consistent demand of 2mW for a day is 48 megawatt hours.</li>
+            </ul>
+        </section>
         <div class="glide">
             <div class="glide__track" data-glide-el="track">
                 <ul class="glide__slides" id="sites">

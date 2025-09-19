@@ -17,13 +17,14 @@ const total=document.getElementById("total")
 const daily=document.getElementById("daily")
 const week=document.getElementById("week")
 const year=document.getElementById("year")
+const explainTotals=document.getElementById("explainTotals")
 const current=document.getElementById("current")
 const bestProduction=document.getElementById("bestProduction")
 const rank=document.querySelector("#rank table tbody")
+const explainRanks=document.getElementById("explainRanks")
 const generationInPeriod=document.getElementById("generationInPeriod")
 const siteDialog=document.getElementById("siteOverview")
 const siteGraph=document.getElementById("siteGraph")
-const closeSiteDialog=document.getElementById("closeSiteOverview")
 const siteSelection=document.getElementById("siteSelection")
 const sites_carousel=document.getElementById("sites")
 const glide_carousel=document.querySelector(".glide")
@@ -84,11 +85,20 @@ const combinedSolarData=new Float64RingBuffer(3000)
 const time=document.getElementById("time")
 const averageDemand=document.getElementById("averageDemand")
 const percentOfDemand=document.getElementById("percentOfDemand")
+
 const resizeSiteGraph=new ResizeObserver(drawSiteGraph)
 const resizeDemandGraph=new ResizeObserver(drawAverageChart)
 resizeSiteGraph.observe(siteGraph)
 resizeDemandGraph.observe(demandGraph)
+makeModal(siteDialog,null,"closeSiteOverview")
+makeModal(explainTotals,"explainTotalsLink","closeExplainTotals")
+makeModal(explainRanks,"explainRanksLink","closeExplainRanks")
+
+
+//initialise state
 fetchCombinedSolarData()
+
+//render initial elements
 drawAverageChart()
 
 //RENDER FUNCTIONS 
@@ -359,8 +369,6 @@ document.querySelectorAll("[name=legend]").forEach(e=>{
 
 document.getElementById("selectAllSites").addEventListener("click",()=>{setTimeout(updateSiteOverview,0)})
 
-closeSiteDialog.addEventListener("click",siteDialog.close)
-
 //ELEMENT FACTORIES
 function createSiteRow(rank,siteData){
     const row=document.createElement('tr')
@@ -427,6 +435,13 @@ function addBullet(glide_el){
     bullets.append(button)
 }
 
+function makeModal(el,openLinkId,closeLinkId){
+    el.show=()=>el.classList.remove("display-none");
+    el.close=()=>el.classList.add("display-none");
+    if(openLinkId!=null) document.getElementById(openLinkId)?.addEventListener('click',el.show);
+    if(closeLinkId!=null) document.getElementById(closeLinkId)?.addEventListener('click',el.close);
+}
+
 //Handle functions
 function handleSiteSelection(){
     updateSiteOverview()
@@ -440,13 +455,6 @@ function handleCardClick(e){
     document.getElementById(siteName+"_checkbox").setAttribute("checked","checked")
     updateSiteOverview()
     siteDialog.show()
-}
-
-siteDialog.show=function(){
-    siteDialog.classList.remove("display-none")
-}
-siteDialog.close=function(){
-    siteDialog.classList.add("display-none")
 }
 
 //Fetch Functions
