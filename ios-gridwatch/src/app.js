@@ -32,6 +32,29 @@ const config_carousel={
     focusAt:"center",
     perView:3
 }
+const updateTimer={
+    element:document.getElementById("timeToUpdate"),
+    time:59.9,
+    eta:Date.now()+60000,
+    interval:null,
+    update:function(){
+        this.time=(Math.round((this.eta-Date.now())/100)/10).toFixed(1)
+        this.element.textContent=this.time
+        const {width,height} =this.element.getBoundingClientRect()
+        this.element.style.left = `calc(50% - ${width / 2}px)`
+        this.element.style.top = `calc(50% - ${height / 2}px)`
+    },
+    start:function(){
+        if(this.interval===null){
+            this.newEta()
+            this.interval=setInterval(()=>updateTimer.update(),100)
+        }
+        return this.interval
+    },
+    newEta:function(){
+        this.eta=Date.now()+60000
+    }
+}
 const scale=document.getElementById("scale")
 const scale_value=document.getElementById("scale_value")
 scale_value.textContent=scale.value
@@ -274,6 +297,7 @@ document.addEventListener("DOMContentLoaded",()=>{
             })
         }
         if(sites_carousel.firstElementChild){//if not first message
+            updateTimer.newEta()
             liveData.sites.forEach((site,i) => {
                 const spacelessName=site.name.replaceAll(" ","")
                 sites_carousel.querySelectorAll(`.${spacelessName}-snapshot`).forEach(span=>{
@@ -286,6 +310,7 @@ document.addEventListener("DOMContentLoaded",()=>{
             })
         }
         else{ //if first message
+            updateTimer.start()
             const sortedSites=liveData['sites'].sort((a,b)=>b.snapshot-a.snapshot)
             sortedSites.forEach((site,i) => {
                 sites_carousel.append(createSiteCard(site))

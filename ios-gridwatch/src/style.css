@@ -97,6 +97,15 @@ h1{
     padding: 0.1rem 1rem;
 }
 
+.layered{
+    position:relative;
+}
+
+.subtleOverlay{
+    position:absolute;
+    color:var(--main);
+}
+
 #sites{
     display: flex;
     flex-direction: row;
