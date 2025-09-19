@@ -58,13 +58,15 @@ const legend={
 }
 const averagedDataTransitionX=referenceDay().valueOf()
 const combinedSolarData=new Float64RingBuffer(3000)
-const resizeSiteGraph=new ResizeObserver(drawSiteGraph)
 const time=document.getElementById("time")
 const averageDemand=document.getElementById("averageDemand")
 const percentOfDemand=document.getElementById("percentOfDemand")
+const resizeSiteGraph=new ResizeObserver(drawSiteGraph)
+const resizeDemandGraph=new ResizeObserver(drawAverageChart)
 resizeSiteGraph.observe(siteGraph)
-drawAverageChart()
+resizeDemandGraph.observe(demandGraph)
 fetchCombinedSolarData()
+drawAverageChart()
 
 //RENDER FUNCTIONS 
 function drawAverageChart(){
@@ -265,16 +267,12 @@ document.addEventListener("DOMContentLoaded",()=>{
 
     //MAIN UPDATE EVENT
     eventSource.addEventListener("message",(e)=>{
-
         liveData=JSON.parse(e.data);
         if(liveData.sites && liveData.sites.length){
             liveData.sites.forEach((site)=>{
                 site.max_percent=site.snapshot/site.max*100
             })
         }
-        updateTable();
-        updateAggregated();
-        updateDemand(parseFloat(liveData["current_w"])/1000)
         if(sites_carousel.firstElementChild){//if not first message
             liveData.sites.forEach((site,i) => {
                 const spacelessName=site.name.replaceAll(" ","")
@@ -305,6 +303,9 @@ document.addEventListener("DOMContentLoaded",()=>{
             })
             fetchAllPeriodData(0)
         }
+        updateTable();
+        updateAggregated();
+        updateDemand(parseFloat(liveData["current_w"])/1000)
 
     })
     window.addEventListener("beforeunload",()=>{
