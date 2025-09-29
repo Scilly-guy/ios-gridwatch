@@ -103,6 +103,7 @@ drawAverageChart()
 
 //RENDER FUNCTIONS 
 function drawAverageChart(){
+    if (document.hidden) return; //No need to draw the graph if the page isn't visible.
     legend.max_value.solar=combinedSolarData.getHighestY()*scale.value
     const max_value=roundUpToQuarterSignificant(Math.max(
         legend.average.checked?legend.max_value.average:0,
@@ -178,6 +179,7 @@ function drawAverageChart(){
     
 }
 function drawSiteGraph(){ 
+    if (document.hidden) return; //No need to draw the graph if the page isn't visible.
     const checkedbox=document.querySelector('[name="period"]:checked')
     if(!checkedbox.disabled){
         const period=checkedbox.value
