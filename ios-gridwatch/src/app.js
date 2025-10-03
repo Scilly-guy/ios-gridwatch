@@ -35,12 +35,18 @@ const config_carousel={
 }
 const updateTimer={
     element:document.getElementById("timeToUpdate"),
+    element2:document.getElementById("timeToUpdateOption"),
     time:59.9,
     eta:Date.now()+60000,
     interval:null,
     update:function(){
-        this.time=(Math.round((this.eta-Date.now())/100)/10).toFixed(1)
-        this.element.textContent=this.time
+        this.time=(Math.round((this.eta-Date.now())/100)/10)
+        if(this.time>3600)
+        {
+            window.location.reload();
+        }
+        this.element.textContent=this.time.toFixed(1)
+        this.element2.textContent=this.time.toFixed(1)
         const {width,height} =this.element.getBoundingClientRect()
         this.element.style.left = `calc(50% - ${width / 2}px)`
         this.element.style.top = `calc(50% - ${height / 2}px)`
