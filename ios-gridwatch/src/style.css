@@ -107,6 +107,14 @@ h1{
     color:var(--main-subtle);
 }
 
+.subtleOverlayOption{
+    position:absolute;
+    top:2px;
+    left:2px;
+    font-size: x-small;
+    color:#999;
+}
+
 #sites{
     display: flex;
     flex-direction: row;
