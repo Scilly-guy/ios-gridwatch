@@ -41,7 +41,7 @@ const updateTimer={
     interval:null,
     update:function(){
         this.time=(Math.round((this.eta-Date.now())/100)/10)
-        if(this.time>3600)
+        if(this.time<3600)
         {
             window.location.reload();
         }
@@ -331,6 +331,7 @@ document.addEventListener("DOMContentLoaded",()=>{
             })
         }
         if(sites_carousel.firstElementChild){//if not first message
+
             updateTimer.newEta()
             liveData.sites.forEach((site,i) => {
                 const spacelessName=site.name.replaceAll(" ","")
