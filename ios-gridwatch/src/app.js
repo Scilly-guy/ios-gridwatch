@@ -62,9 +62,6 @@ const updateTimer={
         this.eta=Date.now()+60000
     }
 }
-const scale=document.getElementById("scale")
-const scale_value=document.getElementById("scale_value")
-scale_value.textContent=scale.value
 const sortingOptions=document.querySelectorAll("[name=sort]")
 const demandGraph=document.getElementById("demandGraph")
 const legend={
@@ -110,7 +107,7 @@ drawAverageChart()
 //RENDER FUNCTIONS 
 function drawAverageChart(){
     if (document.hidden) return; //No need to draw the graph if the page isn't visible.
-    legend.max_value.solar=combinedSolarData.getHighestY()*scale.value
+    legend.max_value.solar=combinedSolarData.getHighestY()
     const max_value=roundUpToQuarterSignificant(Math.max(
         legend.average.checked?legend.max_value.average:0,
         legend.solar.checked?legend.max_value.solar:0,
@@ -121,7 +118,7 @@ function drawAverageChart(){
         legend.std.checked?legend.max_value.standard_deviation:0
     ))
     const noLine=[{x:referenceDay(),y:0},{x:referenceDay().valueOf()+1,y:0}]
-    const solarData=legend.solar.checked?combinedSolarData.getValues(scale.value):noLine;
+    const solarData=legend.solar.checked?combinedSolarData.getValues():noLine;
     const endLine=[{x:averagedDataTransitionX,y:max_value},{x:averagedDataTransitionX+100,y:0}]
     const nowLine=[{x:referenceDay(),y:max_value},{x:referenceDay().valueOf()+100,y:0}]
     const average={name:'Average Day',data:legend.average.checked?averageDay:noLine}
@@ -377,11 +374,6 @@ document.addEventListener("DOMContentLoaded",()=>{
 
 document.querySelectorAll('[name="period"]').forEach((s)=>{
     s.addEventListener('change',handlePeriodSelection)
-})
-
-scale.addEventListener("input",()=>{
-    scale_value.textContent=scale.value
-    drawAverageChart()
 })
 
 sortingOptions.forEach(e=>{
