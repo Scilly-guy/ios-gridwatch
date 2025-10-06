@@ -284,6 +284,13 @@ function updateTable(){
 function updateSiteOverview() {
     const selectedPeriod=document.querySelector("[name='period']:checked").value.toString()
     const selectedSites=Array.from(document.querySelectorAll(".dropdown-option:has([type=checkbox]:checked)")).map(s=>s.textContent)
+    const dataForPeriod=sitePeriodData[selectedPeriod.toString()][0].data;
+    const lengthOfData=dataForPeriod.length;
+    const lastDataPoint=dataForPeriod[lengthOfData-1];
+    const ageOfData=Date.now()-lastDataPoint[0];
+    if(ageOfData>3600000){
+        fetchOnePeriodData(selectedPeriod);
+    }
     let generation_in_period=0
     let highest=0
     let bestSite=''
@@ -466,6 +473,19 @@ function handleCardClick(e){
 }
 
 //Fetch Functions
+function fetchOnePeriodData(period){
+    const address=`/site/all/${period}`
+    fetch(address).then((res)=>{
+        res.json().then((data3)=>{
+            data3.forEach(d3=>{
+                d3.data.forEach(d=>d[0]*=1000)
+            })
+            sitePeriodData[period.toString()]=data3;
+            drawSiteGraph();
+        })
+    })
+}
+
 function fetchAllPeriodData(periodIndex){
     const address=`/site/all/${periods[periodIndex]}`
     fetch(address).then((res)=>{
