@@ -288,7 +288,19 @@ function updateSiteOverview() {
     const lengthOfData=dataForPeriod.length;
     const lastDataPoint=dataForPeriod[lengthOfData-1];
     const ageOfData=Date.now()-lastDataPoint[0];
-    if(ageOfData>3600000){
+    let dataStale=3600000 // 1hr in ms
+    switch (selectedPeriod){
+        case "7":
+            dataStale=3*3600000; //3hrs in ms
+            break;
+        case "31":
+        case "365":
+            dataStale=6*3600000; //6hrs in ms
+            break;
+        default:
+            break;
+    }
+    if(ageOfData>dataStale){
         fetchOnePeriodData(selectedPeriod);
     }
     let generation_in_period=0
