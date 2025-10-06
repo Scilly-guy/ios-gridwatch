@@ -41,7 +41,7 @@ const updateTimer={
     interval:null,
     update:function(){
         this.time=(Math.round((this.eta-Date.now())/100)/10)
-        if(this.time<3600)
+        if(this.time<-3600)
         {
             window.location.reload();
         }
