@@ -273,7 +273,7 @@ function updateTable(){
     while(rank.firstChild){
         rank.firstChild.remove()
     }
-    liveData.sites.forEach((site,i)=>{
+    liveData.sites.slice(0,6).forEach((site,i)=>{
         rank.append(createSiteRow(i+1,site))
     })
 }
