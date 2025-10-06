@@ -28,7 +28,7 @@
         }
 
         .wobbly-rays{
-            animation-duration:40s;
+            animation-duration:60s;
             animation-iteration-count:infinite;
             animation-name:wobble;
             animation-timing-function:linear;
