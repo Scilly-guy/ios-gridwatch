@@ -89,6 +89,8 @@ const time=document.getElementById("time")
 const averageDemand=document.getElementById("averageDemand")
 const percentOfDemand=document.getElementById("percentOfDemand")
 
+const letters=[..."abcdefghijklmnopqrstuvwxyz"]
+
 const resizeSiteGraph=new ResizeObserver(drawSiteGraph)
 const resizeDemandGraph=new ResizeObserver(drawAverageChart)
 resizeSiteGraph.observe(siteGraph)
@@ -349,7 +351,7 @@ document.addEventListener("DOMContentLoaded",()=>{
             const sortedSites=liveData['sites'].sort((a,b)=>b.snapshot-a.snapshot)
             sortedSites.forEach((site,i) => {
                 sites_carousel.append(createSiteCard(site))
-                siteSelection.append(createSiteSelector(site.name))
+                siteSelection.append(createSiteSelector(site.name,letters[i]))
                 addBullet(glide_carousel)
             });
             new Glide('.glide',config_carousel).mount()
@@ -432,10 +434,10 @@ function createSiteCard(siteData){
     return li
 }
 
-function createSiteSelector(siteName){
+function createSiteSelector(siteName,seriesLetter){
     const label=document.createElement("label")
     label.textContent=siteName
-    label.classList.add("dropdown-option")
+    label.classList.add("dropdown-option",`ct-series-${seriesLetter}`)
     const checkbox=document.createElement("input")
     const spacelessName=siteName.replaceAll(" ","")
     checkbox.id=spacelessName+"_checkbox"
