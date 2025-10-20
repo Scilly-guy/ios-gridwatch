@@ -88,8 +88,14 @@ func main() {
 		}
 	})
 
+	var validSite = regexp.MustCompile(`^[a-zA-Z0-9_+-]+$`)
+
 	e.GET("/site/:site/:period", func(c echo.Context) error {
 		siteName := c.Param("site")
+		if !validSite.MatchString(siteName) {
+			log.Print("Error: Bad Route")
+			return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad route"})
+		}
 		period, err := strconv.ParseInt(c.Param("period"), 10, 64)
 		w := c.Response()
 		//FIXME:CORS
