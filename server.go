@@ -98,8 +98,7 @@ func main() {
 		}
 		period, err := strconv.ParseInt(c.Param("period"), 10, 64)
 		w := c.Response()
-		//FIXME:CORS
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Origin", *host)
 
 		if err != nil {
 			log.Print("Error: ", err)
@@ -127,8 +126,7 @@ func main() {
 
 	e.GET("/site/all", func(c echo.Context) error {
 		w := c.Response()
-		//FIXME:CORS
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Origin", *host)
 
 		site_data, err := FetchTodaysGenerationData()
 		if err != nil {
