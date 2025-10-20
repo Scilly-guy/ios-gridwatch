@@ -36,7 +36,6 @@ func main() {
 	e.Static("/assets", "ios-gridwatch/dist/assets")
 	e.Static("/", "ios-gridwatch/src/")
 	e.File("/", "ios-gridwatch/dist/index.html")
-	e.File("/dev.html", "ios-gridwatch/index.html")
 
 	e.GET("/sse", func(c echo.Context) error {
 		log.Printf("SSE client connected, ip:%v", c.RealIP())
