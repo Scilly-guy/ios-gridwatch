@@ -2,8 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -12,6 +16,19 @@ import (
 )
 
 func main() {
+	port_env := os.Getenv("GRIDWATCH_PORT")
+	if port_env == "" {
+		port_env = "1323"
+	}
+	port := flag.String("port", port_env, "Port to run on")
+
+	host_env := os.Getenv("GRIDWATCH_HOST")
+	if host_env == "" {
+		host_env = "localhost"
+	}
+	host := flag.String("host", host_env, "Host to listen on")
+	flag.Parse()
+
 	e := echo.New()
 
 	e.Use(middleware.Recover())
@@ -27,7 +44,7 @@ func main() {
 		w.Header().Set("Content-Type", "text/event-stream")
 		w.Header().Set("Cache-Control", "no-cache")
 		w.Header().Set("Connection", "keep-alive")
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Origin", *host)
 
 		send := func() error {
 			solarData, err := get_solar_data()
@@ -116,5 +133,6 @@ func main() {
 		return c.JSON(http.StatusOK, site_data)
 	})
 
-	e.Logger.Fatal(e.Start("0.0.0.0:1323"))
+	listen_on := fmt.Sprintf("%s:%s", *host, *port)
+	e.Logger.Fatal(e.Start(listen_on))
 }
